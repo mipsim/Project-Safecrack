@@ -37,21 +37,29 @@ public class Conductor : MonoBehaviour
   public GameObject leftBar;
   public GameObject rightBar;
   private float leftStartX;
+  private float leftMidpointX;
   private float rightStartX;
+  private float rightMidpointX;
 
   public GameObject locke;
   private LockSpinWhee lockSpin;
 
-  public bool clickPlayed = false;
+  private bool clickPlayed = false;
+  private bool responded = false;
 
   public float invokeDelay = 0f;
 
   // Start is called before the first frame update
   void Start() {
-    leftStartX = 
+    // record bar starting positions/midpoints
+    leftStartX = leftBar.transform.position.x;
+    rightStartX = rightBar.transform.position.x;
+    leftMidpointX = (leftStartX + locke.transform.position.x)/2;
+    rightMidpointX = (rightStartX + locke.transform.position.x) /2;
+
     lockSpin = locke.GetComponent<LockSpinWhee>();
 
-      //Load the AudioSource attached to the Conductor GameObject
+    //Load the AudioSource attached to the Conductor GameObject
     musicSource = GetComponent<AudioSource>();
 
     //Calculate the number of seconds in each beat
@@ -64,6 +72,7 @@ public class Conductor : MonoBehaviour
 
   // Update is called once per frame
   void Update() {
+    Debug.Log(songPosition + ", " + targetBeatPosition);
     if (Input.GetKeyDown(KeyCode.Space)) {
       // Start the song with space
       if (!musicSource.isPlaying) {
@@ -81,6 +90,8 @@ public class Conductor : MonoBehaviour
       }
       else {
         if (targetBeatPosition != 0f) {
+          StartCoroutine(SecondSnap());
+
           // If pressed at right timing
           if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat / 2) {
             Debug.Log("good");
@@ -110,9 +121,12 @@ public class Conductor : MonoBehaviour
       // when we get to the randomly generated beat position, play the click
       if (Mathf.Abs(clickBeatPosition - songPosition) < milliSecPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
         clickPlayed = true;
-        StartCoroutine(SnapBars());
+        StartCoroutine(FirstSnap());
         Debug.Log("click");
         SFXManager.instance.PlaySound("click");
+      }
+      if(songPosition > targetBeatPosition && !responded && targetBeatPosition != 0) {
+        StartCoroutine(ResponseTwitch());
       }
     }
       
@@ -122,19 +136,36 @@ public class Conductor : MonoBehaviour
   public void DetermineClick() {
     // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
     //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
-    clickBeatPosition = (int)(songPosition + 12f * milliSecPerBeat);
+    clickBeatPosition = (int)(songPosition + 10.7f * milliSecPerBeat);
 
     // should be one measure after the randomBeat
     targetBeatPosition = clickBeatPosition + measureLength;
 
     clickPlayed = false;
+    responded = false;
   }
 
-  public IEnumerator SnapBars() {
+  public IEnumerator FirstSnap() {
+    while(leftBar.transform.position.x != leftMidpointX) {
+      leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftMidpointX, 0), 0.5f);
+      rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightMidpointX, 0), 0.5f);
+    }
+    yield return null;
+  }
+
+  public IEnumerator SecondSnap() {
     while(leftBar.transform.position.x != locke.transform.position.x) {
-      Debug.Log(leftBar.transform.position + ", " + locke.transform.position);
-      leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 5f);
-      rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 5f);
+      leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 0.5f);
+      rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.5f);
+    }
+    responded = true;
+    yield return null;
+  }
+
+  public IEnumerator ResponseTwitch() {
+    while(leftBar.transform.position.x != locke.transform.position.x) {
+      leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 0.05f);
+      rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.05f);
     }
     yield return null;
   }
