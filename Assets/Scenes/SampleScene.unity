@@ -766,7 +766,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 454048d9ae1c28347bc89bd45ecfd65c, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.089
+  m_Volume: 0.054
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -873,6 +873,7 @@ MonoBehaviour:
   clickBeatPosition: 0
   targetBeatPosition: 0
   lockSpin: {fileID: 301032712}
+  clickPlayed: 0
 --- !u!1 &1645596582
 GameObject:
   m_ObjectHideFlags: 0
