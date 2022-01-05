@@ -552,7 +552,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 612466009}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 8.64, y: 0.0828, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1677358331}
@@ -865,15 +865,17 @@ MonoBehaviour:
   songBpm: 128
   timeSig: 4
   measureLength: 0
-  secPerBeat: 0
+  milliSecPerBeat: 0
   songPosition: 0
-  songPositionInBeats: 0
   dspSongTime: 0
   musicSource: {fileID: 0}
   clickBeatPosition: 0
   targetBeatPosition: 0
-  lockSpin: {fileID: 301032712}
+  leftBar: {fileID: 1645596582}
+  rightBar: {fileID: 612466009}
+  locke: {fileID: 301032709}
   clickPlayed: 0
+  invokeDelay: 0
 --- !u!1 &1645596582
 GameObject:
   m_ObjectHideFlags: 0
@@ -898,7 +900,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1645596582}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -8.628, y: 0.0828, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2006123440}
@@ -1005,7 +1007,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1677358330}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 8.64, y: 0.0828, z: 11.793135}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 4.9685097, z: 1}
   m_Children: []
   m_Father: {fileID: 612466010}
@@ -1119,7 +1121,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2006123439}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.628, y: 0.0828, z: 11.793135}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 4.9685097, z: 1}
   m_Children: []
   m_Father: {fileID: 1645596583}

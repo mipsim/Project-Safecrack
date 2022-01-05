@@ -34,7 +34,13 @@ public class Conductor : MonoBehaviour
   // the target beat that you should hit space on (1 measure later)
   public float targetBeatPosition;
 
-  public LockSpinWhee lockSpin;
+  public GameObject leftBar;
+  public GameObject rightBar;
+  private float leftStartX;
+  private float rightStartX;
+
+  public GameObject locke;
+  private LockSpinWhee lockSpin;
 
   public bool clickPlayed = false;
 
@@ -42,88 +48,94 @@ public class Conductor : MonoBehaviour
 
   // Start is called before the first frame update
   void Start() {
+    leftStartX = 
+    lockSpin = locke.GetComponent<LockSpinWhee>();
+
       //Load the AudioSource attached to the Conductor GameObject
-      musicSource = GetComponent<AudioSource>();
+    musicSource = GetComponent<AudioSource>();
 
-      //Calculate the number of seconds in each beat
-      milliSecPerBeat = 60000f / songBpm;
+    //Calculate the number of seconds in each beat
+    milliSecPerBeat = 60000f / songBpm;
 
-      // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
-      measureLength = 60000f / (songBpm / timeSig);
+    // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
+    measureLength = 60000f / (songBpm / timeSig);
 
   }
 
   // Update is called once per frame
   void Update() {
-      if (Input.GetKeyDown(KeyCode.Space)) {
-          // Start the song with space
-          if (!musicSource.isPlaying) {
-              // Record the time when the music starts
-              dspSongTime = (float)AudioSettings.dspTime;
+    if (Input.GetKeyDown(KeyCode.Space)) {
+      // Start the song with space
+      if (!musicSource.isPlaying) {
+        // Record the time when the music starts
+        dspSongTime = (float)AudioSettings.dspTime;
 
-              // Start the music
-              musicSource.Play();
+        // Start the music
+        musicSource.Play();
 
-              // Start spinning lock
-              lockSpin.rotationSpeed = 100f;
+        // Start spinning lock
+        lockSpin.rotationSpeed = 100f;
 
               // 2 seconds later, determine click timing
-              Invoke("DetermineClick", invokeDelay);
+        Invoke("DetermineClick", invokeDelay);
+      }
+      else {
+        if (targetBeatPosition != 0f) {
+          // If pressed at right timing
+          if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat / 2) {
+            Debug.Log("good");
+            // spin other direction
+            lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
+            SFXManager.instance.PlaySound("correct");
           }
           else {
-              if (targetBeatPosition != 0f) {
-                  // If pressed at right timing
-                  if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat / 2) {
-                      Debug.Log("good");
-                      // spin other direction
-                      lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
-                      SFXManager.instance.PlaySound("correct");
-                  }
-                  else {
-                      Debug.Log("ur bad");
-                      SFXManager.instance.PlaySound("wrong");
+            Debug.Log("ur bad");
+            SFXManager.instance.PlaySound("wrong");
 
-                  }
-                  Invoke("DetermineClick", invokeDelay);
-                  Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
-              }
-                
           }
+          Invoke("DetermineClick", invokeDelay);
+          Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
+        }
+                  
       }
+    }
 
-      if (musicSource.isPlaying) {
-          // determine how many seconds since the song started
-          songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
+    if (musicSource.isPlaying) {
+      // determine how many seconds since the song started
+      songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
 
-          // determine how many beats since the song started
-          //songPositionInBeats = songPosition / secPerBeat;
+      // determine how many beats since the song started
+      //songPositionInBeats = songPosition / secPerBeat;
 
-          // when we get to the randomly generated beat position, play the click
-          if (Mathf.Abs(clickBeatPosition - songPosition) < milliSecPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
-              clickPlayed = true;
-              SFXManager.instance.PlaySound("click");
-          }
+      // when we get to the randomly generated beat position, play the click
+      if (Mathf.Abs(clickBeatPosition - songPosition) < milliSecPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
+        clickPlayed = true;
+        StartCoroutine(SnapBars());
+        Debug.Log("click");
+        SFXManager.instance.PlaySound("click");
       }
+    }
       
   }
 
     // Chooses random beat to play a click within a time window
-    public void DetermineClick() {
-      // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
-      //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
-      clickBeatPosition = (int)(songPosition + 12f * milliSecPerBeat);
+  public void DetermineClick() {
+    // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
+    //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
+    clickBeatPosition = (int)(songPosition + 12f * milliSecPerBeat);
 
-      // should be one measure after the randomBeat
-      targetBeatPosition = clickBeatPosition + measureLength;
+    // should be one measure after the randomBeat
+    targetBeatPosition = clickBeatPosition + measureLength;
 
-      clickPlayed = false;
+    clickPlayed = false;
   }
 
-    public IEnumerator SnapBars() {
-      while(leftBar.transform.position != safelock.transform.position) {
-          leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, safelock.transform.position, 5f);
-          rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, safelock.transform.position, 5f);
-      }
-      yield return null;
+  public IEnumerator SnapBars() {
+    while(leftBar.transform.position.x != locke.transform.position.x) {
+      Debug.Log(leftBar.transform.position + ", " + locke.transform.position);
+      leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 5f);
+      rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 5f);
+    }
+    yield return null;
   }
 }
