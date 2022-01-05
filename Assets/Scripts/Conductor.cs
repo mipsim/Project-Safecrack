@@ -14,13 +14,13 @@ public class Conductor : MonoBehaviour
     public float measureLength;
 
     //The number of seconds for each song beat
-    public float secPerBeat;
+    public float milliSecPerBeat;
 
-    //Current song position, in seconds
+    //Current song position, in milliseconds
     public float songPosition;
 
     //Current song position, in beats
-    public float songPositionInBeats;
+    //public float songPositionInBeats;
 
     //How many seconds have passed since the song started
     public float dspSongTime;
@@ -38,16 +38,18 @@ public class Conductor : MonoBehaviour
 
     public bool clickPlayed = false;
 
+    public float invokeDelay = 0f;
+
     // Start is called before the first frame update
     void Start() {
         //Load the AudioSource attached to the Conductor GameObject
         musicSource = GetComponent<AudioSource>();
 
         //Calculate the number of seconds in each beat
-        secPerBeat = 60f / songBpm;
+        milliSecPerBeat = 60000f / songBpm;
 
-        // Measure length in seconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
-        measureLength = 60 / (songBpm / timeSig);
+        // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
+        measureLength = 60000f / (songBpm / timeSig);
 
     }
 
@@ -66,12 +68,12 @@ public class Conductor : MonoBehaviour
                 lockSpin.rotationSpeed = 100f;
 
                 // 2 seconds later, determine click timing
-                Invoke("DetermineClick", 2f);
+                Invoke("DetermineClick", invokeDelay);
             }
             else {
                 if (targetBeatPosition != 0f) {
                     // If pressed at right timing
-                    if (Mathf.Abs(targetBeatPosition - songPositionInBeats) < 1f) {
+                    if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat / 2) {
                         Debug.Log("good");
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
@@ -82,8 +84,8 @@ public class Conductor : MonoBehaviour
                         SFXManager.instance.PlaySound("wrong");
 
                     }
-                    Invoke("DetermineClick", 2f);
-                    Debug.Log("target: " + targetBeatPosition + " what u got: " + songPositionInBeats);
+                    Invoke("DetermineClick", invokeDelay);
+                    Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
                 }
                 
             }
@@ -91,13 +93,13 @@ public class Conductor : MonoBehaviour
 
         if (musicSource.isPlaying) {
             // determine how many seconds since the song started
-            songPosition = (float)(AudioSettings.dspTime - dspSongTime);
+            songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
 
             // determine how many beats since the song started
-            songPositionInBeats = songPosition / secPerBeat;
+            //songPositionInBeats = songPosition / secPerBeat;
 
             // when we get to the randomly generated beat position, play the click
-            if (clickBeatPosition == (int)songPositionInBeats && targetBeatPosition != 0 && !clickPlayed) {
+            if (Mathf.Abs(clickBeatPosition - songPosition) < milliSecPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
                 clickPlayed = true;
                 SFXManager.instance.PlaySound("click");
             }
@@ -109,10 +111,10 @@ public class Conductor : MonoBehaviour
     public void DetermineClick() {
         // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
         //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
-        clickBeatPosition = (int)(songPositionInBeats + 12f);
+        clickBeatPosition = (int)(songPosition + 12f * milliSecPerBeat);
 
         // should be one measure after the randomBeat
-        targetBeatPosition = clickBeatPosition + measureLength / secPerBeat;
+        targetBeatPosition = clickBeatPosition + measureLength;
 
         clickPlayed = false;
     }
