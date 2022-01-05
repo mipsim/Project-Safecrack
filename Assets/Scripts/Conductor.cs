@@ -28,8 +28,15 @@ public class Conductor : MonoBehaviour
     //an AudioSource attached to this GameObject that will play the music.
     public AudioSource musicSource;
 
-    public float targetBeatPosition;
+    // the beat position that the lock clicks at
     public float clickBeatPosition;
+
+    // the target beat that you should hit space on (1 measure later)
+    public float targetBeatPosition;
+
+    public LockSpinWhee lockSpin;
+
+    public bool clickPlayed = false;
 
     // Start is called before the first frame update
     void Start() {
@@ -49,36 +56,49 @@ public class Conductor : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space)) {
             // Start the song with space
             if (!musicSource.isPlaying) {
-                //Record the time when the music starts
+                // Record the time when the music starts
                 dspSongTime = (float)AudioSettings.dspTime;
 
-                //Start the music
+                // Start the music
                 musicSource.Play();
 
-                //5 seconds later, determine click timing
-                Invoke("DetermineClick", 5f);
+                // Start spinning lock
+                lockSpin.rotationSpeed = 100f;
+
+                // 2 seconds later, determine click timing
+                Invoke("DetermineClick", 2f);
             }
             else {
                 if (targetBeatPosition != 0f) {
-                    if (Mathf.Abs(targetBeatPosition - songPositionInBeats) < 3f) {
+                    // If pressed at right timing
+                    if (Mathf.Abs(targetBeatPosition - songPositionInBeats) < 1f) {
                         Debug.Log("good");
+                        // spin other direction
+                        lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
+                        SFXManager.instance.PlaySound("correct");
                     }
                     else {
                         Debug.Log("ur bad");
+                        SFXManager.instance.PlaySound("wrong");
+
                     }
+                    Invoke("DetermineClick", 2f);
+                    Debug.Log("target: " + targetBeatPosition + " what u got: " + songPositionInBeats);
                 }
                 
             }
         }
 
         if (musicSource.isPlaying) {
-            //determine how many seconds since the song started
+            // determine how many seconds since the song started
             songPosition = (float)(AudioSettings.dspTime - dspSongTime);
 
-            //determine how many beats since the song started
+            // determine how many beats since the song started
             songPositionInBeats = songPosition / secPerBeat;
 
-            if (clickBeatPosition == (int)songPositionInBeats && songPositionInBeats != 0) {
+            // when we get to the randomly generated beat position, play the click
+            if (clickBeatPosition == (int)songPositionInBeats && targetBeatPosition != 0 && !clickPlayed) {
+                clickPlayed = true;
                 SFXManager.instance.PlaySound("click");
             }
         }
@@ -88,9 +108,12 @@ public class Conductor : MonoBehaviour
     // Chooses random beat to play a click within a time window
     public void DetermineClick() {
         // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
-        clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
+        //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
+        clickBeatPosition = (int)(songPositionInBeats + 12f);
 
         // should be one measure after the randomBeat
         targetBeatPosition = clickBeatPosition + measureLength / secPerBeat;
+
+        clickPlayed = false;
     }
 }

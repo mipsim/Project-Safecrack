@@ -133,6 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 301032710}
   - component: {fileID: 301032711}
+  - component: {fileID: 301032712}
   m_Layer: 0
   m_Name: Inner
   m_TagString: Untagged
@@ -205,6 +206,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &301032712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301032709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a6febb37f9519c42834e0070dd89796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 100
 --- !u!1 &453453676
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,6 +265,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 0}
   click: {fileID: 8300000, guid: 22ca3f5fb8f8df84ca98dc746a7b006f, type: 3}
+  correct: {fileID: 8300000, guid: 0d5d5ec552aaacc44ade45a35a00aaba, type: 3}
+  wrong: {fileID: 8300000, guid: ffa9ae95ac65fa249a3c8a642db4137e, type: 3}
 --- !u!82 &453453679
 AudioSource:
   m_ObjectHideFlags: 0
@@ -263,7 +279,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.089
+  m_Volume: 0.399
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -847,14 +863,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   songBpm: 128
-  timeSig: 0
+  timeSig: 4
   measureLength: 0
   secPerBeat: 0
   songPosition: 0
   songPositionInBeats: 0
   dspSongTime: 0
   musicSource: {fileID: 0}
+  clickBeatPosition: 0
   targetBeatPosition: 0
+  lockSpin: {fileID: 301032712}
 --- !u!1 &1645596582
 GameObject:
   m_ObjectHideFlags: 0
