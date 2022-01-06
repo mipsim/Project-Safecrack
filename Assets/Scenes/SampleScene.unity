@@ -796,7 +796,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clip: {fileID: 8300000, guid: 119ecaf702429444d85572806f43a38d, type: 3}
   songName: lockmock
-  bpm: 200
+  bpm: 50
   sig: 4
 --- !u!1 &1561667568
 GameObject:
