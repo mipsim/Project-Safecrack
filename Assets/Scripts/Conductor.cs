@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Conductor : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class Conductor : MonoBehaviour
   public float timeSig; // should be a tuple, but we only use numerator anyways (ie. time sig 4/4)
 
   public float measureLength;
+
+    public string songName;
 
   //The number of seconds for each song beat
   public float milliSecPerBeat;
@@ -49,18 +52,30 @@ public class Conductor : MonoBehaviour
 
   public float invokeDelay = 0f;
 
-  // Start is called before the first frame update
-  void Start() {
-    // record bar starting positions/midpoints
-    leftStartX = leftBar.transform.position.x;
+
+    public TextMeshPro currentlyPlaying;
+    public List<SongData> songList;
+    public int songListPosition;
+
+    // Start is called before the first frame update
+    void Start() {
+        //Load the AudioSource attached to the Conductor GameObject
+        musicSource = GetComponent<AudioSource>();
+        songBpm = songList[0].GetComponent<SongData>().bpm;
+        timeSig = songList[0].GetComponent<SongData>().sig;
+        musicSource.clip = songList[0].GetComponent<SongData>().clip;
+        songName = songList[0].GetComponent<SongData>().songName;
+        currentlyPlaying.text = "Currently playing: " + songName;
+
+        // record bar starting positions/midpoints
+        leftStartX = leftBar.transform.position.x;
     rightStartX = rightBar.transform.position.x;
     leftMidpointX = (leftStartX + locke.transform.position.x)/2;
     rightMidpointX = (rightStartX + locke.transform.position.x) /2;
 
     lockSpin = locke.GetComponent<LockSpinWhee>();
 
-    //Load the AudioSource attached to the Conductor GameObject
-    musicSource = GetComponent<AudioSource>();
+
 
     //Calculate the number of seconds in each beat
     milliSecPerBeat = 60000f / songBpm;
@@ -73,6 +88,29 @@ public class Conductor : MonoBehaviour
   // Update is called once per frame
   void Update() {
     Debug.Log(songPosition + ", " + targetBeatPosition);
+        if (!musicSource.isPlaying) {
+            if (Input.GetKeyDown(KeyCode.Q)) {
+                if (songListPosition > 0) {
+                    songListPosition--;
+                    var currentSong = songList[songListPosition];
+                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.E)) {
+                if (songListPosition < songList.Count) {
+                    songListPosition++;
+                    var currentSong = songList[songListPosition];
+                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                }
+            }
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Escape) && musicSource.isPlaying) {
+            musicSource.Stop();
+            lockSpin.rotationSpeed = 0f;
+            StopAllCoroutines();
+            StartCoroutine("ReturnSnap");
+        }
     if (Input.GetKeyDown(KeyCode.Space)) {
       // Start the song with space
       if (!musicSource.isPlaying) {
@@ -105,6 +143,8 @@ public class Conductor : MonoBehaviour
 
           }
           Invoke("DetermineClick", invokeDelay);
+                    StopAllCoroutines();
+                    StartCoroutine("ReturnSnap");
           Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
         }
                   
@@ -131,6 +171,20 @@ public class Conductor : MonoBehaviour
     }
       
   }
+
+    public void SwitchSongs(AudioClip clip, string _name, int bpm, int sig) {
+        musicSource.clip = clip;
+        songName = _name;
+        songBpm = bpm;
+        timeSig = sig;
+        //Calculate the number of seconds in each beat
+        milliSecPerBeat = 60000f / songBpm;
+
+        // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
+        measureLength = 60000f / (songBpm / timeSig);
+
+        currentlyPlaying.text = "Currently playing: " + songName;
+    }
 
     // Chooses random beat to play a click within a time window
   public void DetermineClick() {
@@ -162,7 +216,15 @@ public class Conductor : MonoBehaviour
     yield return null;
   }
 
-  public IEnumerator ResponseTwitch() {
+    public IEnumerator ReturnSnap() {
+        while (leftBar.transform.position.x != leftStartX) {
+            leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStartX, 0), 0.5f);
+            rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStartX, 0), 0.5f);
+        }
+        yield return null;
+    }
+
+    public IEnumerator ResponseTwitch() {
     while(leftBar.transform.position.x != locke.transform.position.x) {
       leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 0.05f);
       rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.05f);
