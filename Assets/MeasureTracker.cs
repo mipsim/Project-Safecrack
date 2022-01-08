@@ -43,7 +43,6 @@ public class MeasureTracker : MonoBehaviour
         moving = true;
         moveTime = conductor.measureLength;
         while(moveTime > 0) {
-            Debug.Log(moveTime );
             moveTime -= (float)(AudioSettings.dspTime - conductor.dspSongTime) * 1000f;
             if (!direction) {
                 leftTracker.transform.position = new Vector3(leftTracker.transform.position.x, leftTracker.transform.position.y - moveSpeed, 0);

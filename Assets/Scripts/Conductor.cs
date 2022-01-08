@@ -52,8 +52,11 @@ public class Conductor : MonoBehaviour {
 
     public float invokeDelay = 0f;
 
+    public Dictionary<int, int> lockNumbers = new Dictionary<int, int>();
+    public GameObject[] numberSlots;
 
     public TextMeshPro currentlyPlaying;
+    public TextMeshPro currentBPM;
     public List<SongData> songList;
     public int songListPosition;
 
@@ -66,6 +69,7 @@ public class Conductor : MonoBehaviour {
         musicSource.clip = songList[0].GetComponent<SongData>().clip;
         songName = songList[0].GetComponent<SongData>().songName;
         currentlyPlaying.text = "Currently playing: " + songName;
+        currentBPM.text = "BPM: " + songBpm;
 
         // record bar starting positions/midpoints
         leftStartX = leftBar.transform.position.x;
@@ -83,6 +87,11 @@ public class Conductor : MonoBehaviour {
         // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
         measureLength = 60000f / (songBpm / timeSig);
 
+        for (int i = 0; i < 16; i++) {
+            lockNumbers.Add(i, 0);
+        }
+
+        CalculateSixteenths();
     }
 
     // Update is called once per frame
@@ -109,10 +118,14 @@ public class Conductor : MonoBehaviour {
             musicSource.Stop();
             lockSpin.rotationSpeed = 0f;
             StopAllCoroutines();
+            responded = true;
             StartCoroutine("ReturnSnap");
             measureTracker.moving = false;
             measureTracker.leftTracker.transform.position = measureTracker.leftStart;
             measureTracker.rightTracker.transform.position = measureTracker.rightStart;
+            foreach (GameObject slot in numberSlots) {
+                slot.SetActive(false);
+            }
         }
         if (Input.GetKeyDown(KeyCode.Space)) {
             // Start the song with space
@@ -125,7 +138,7 @@ public class Conductor : MonoBehaviour {
 
                 // Start spinning lock
                 lockSpin.rotationSpeed = 100f;
-
+                responded = false;
                 measureTracker.moving = true;
                 // 2 seconds later, determine click timing
                 Invoke("DetermineClick", invokeDelay);
@@ -140,6 +153,18 @@ public class Conductor : MonoBehaviour {
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                         SFXManager.instance.PlaySound("correct");
+                        int hitNote = (int)(songPosition % measureLength);
+
+                        for (int i = 0; i < 15; i++) {
+                            if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
+                                DisplayNumber(i);
+                                break;
+                            }
+                        }
+                        //if (hitNote > (int)lockNumbers[14] && hitNote < (int)lockNumbers[15]) {
+                        //    DisplayNumber(hitNote);
+                        //    break;
+                        //}
                     }
                     else {
                         Debug.Log("ur bad");
@@ -192,6 +217,8 @@ public class Conductor : MonoBehaviour {
         measureLength = 60000f / (songBpm / timeSig);
 
         currentlyPlaying.text = "Currently playing: " + songName;
+        currentBPM.text = "BPM: " + songBpm;
+        CalculateSixteenths();
     }
 
     // Chooses random beat to play a click within a time window
@@ -205,6 +232,24 @@ public class Conductor : MonoBehaviour {
 
         clickPlayed = false;
         responded = false;
+    }
+
+    public void CalculateSixteenths() {
+        for (int i = 0; i < 16; i++) {
+            //Debug.Log(measureLength);
+            lockNumbers[i] =  (int)((i / 16f) * measureLength);
+            //Debug.Log(lockNumbers[i]);
+        }
+    }
+
+    public void DisplayNumber(int hit) {
+        foreach (GameObject slot in numberSlots) {
+            if (!slot.activeSelf) {
+                slot.SetActive(true);
+                slot.GetComponent<TextMeshProUGUI>().text = "" + hit;
+                break;
+            }
+        }
     }
 
     public IEnumerator FirstSnap() {
