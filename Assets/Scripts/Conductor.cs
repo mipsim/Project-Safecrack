@@ -234,7 +234,7 @@ public class Conductor : MonoBehaviour {
     public void DetermineClick() {
         // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
         //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
-        clickBeatPosition = (int)( ((songPosition%msPerBeat)+measureLength) + (int)Random.Range(0, 4) * msPerBeat);
+        clickBeatPosition = (int)( ((songPosition%msPerBeat)+measureLength) + (int)Random.Range(0, timeSig) * msPerBeat);
                                     //  current measure      + 1 measure
         // should be one measure after the randomBeat
         targetBeatPosition = clickBeatPosition + measureLength;
