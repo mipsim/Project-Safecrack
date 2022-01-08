@@ -38,4 +38,8 @@ public class SFXManager : MonoBehaviour
                 
         }
     }
+
+    public void ChangeSFXVolume(float vol) {
+        sfxSource.volume = vol;
+    }
 }

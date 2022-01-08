@@ -60,6 +60,11 @@ public class Conductor : MonoBehaviour {
     public List<SongData> songList;
     public int songListPosition;
 
+    public TextMeshProUGUI comboText;
+    public TextMeshProUGUI highscoreText;
+    public int score;
+    public int highscore;
+
     // Start is called before the first frame update
     void Start() {
         //Load the AudioSource attached to the Conductor GameObject
@@ -96,6 +101,9 @@ public class Conductor : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        comboText.text = "COMBO: " + score;
+        highscoreText.text = "HIGHSCORE: " + highscore;
+
         //Debug.Log(songPosition + ", " + targetBeatPosition);
         if (!musicSource.isPlaying) {
             if (Input.GetKeyDown(KeyCode.Q)) {
@@ -126,6 +134,7 @@ public class Conductor : MonoBehaviour {
             foreach (GameObject slot in numberSlots) {
                 slot.SetActive(false);
             }
+            score = 0;
         }
         if (Input.GetKeyDown(KeyCode.Space)) {
             // Start the song with space
@@ -142,6 +151,7 @@ public class Conductor : MonoBehaviour {
                 measureTracker.moving = true;
                 // 2 seconds later, determine click timing
                 Invoke("DetermineClick", invokeDelay);
+                
             }
             else {
                 if (targetBeatPosition != 0f) {
@@ -161,15 +171,15 @@ public class Conductor : MonoBehaviour {
                                 break;
                             }
                         }
-                        //if (hitNote > (int)lockNumbers[14] && hitNote < (int)lockNumbers[15]) {
-                        //    DisplayNumber(hitNote);
-                        //    break;
-                        //}
+                        score++;
+                        if (highscore < score) {
+                            highscore = score;
+                        }
                     }
                     else {
                         Debug.Log("ur bad");
                         SFXManager.instance.PlaySound("wrong");
-
+                        score = 0;
                     }
                     Invoke("DetermineClick", invokeDelay);
                     StopAllCoroutines();
@@ -270,12 +280,13 @@ public class Conductor : MonoBehaviour {
     }
 
     public IEnumerator ReturnSnap() {
-        if (!responded) {
-            SFXManager.instance.PlaySound("wrong");
+        //if (!responded) {
+        //    SFXManager.instance.PlaySound("wrong");
 
-            yield return new WaitForSeconds(0.5f);
+        //    yield return new WaitForSeconds(0.25f);
 
-        }
+        //}
+        yield return new WaitForSeconds(0.5f);
         while (leftBar.transform.position.x != leftStartX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStartX, 0), 0.5f);
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStartX, 0), 0.5f);
@@ -289,5 +300,13 @@ public class Conductor : MonoBehaviour {
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.05f);
         }
         yield return null;
+    }
+
+    public void ResetHighscore() {
+        highscore = 0;
+    }
+
+    public void ChangeMusicVolume(float vol) {
+        musicSource.volume = vol;
     }
 }
