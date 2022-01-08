@@ -2619,7 +2619,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clip: {fileID: 8300000, guid: 6d29700fb1d778449b8e12245a0f53b6, type: 3}
   songName: lockmock randomized
-  bpm: 240
+  bpm: 120
   sig: 4
 --- !u!1 &1154059757
 GameObject:
@@ -3001,7 +3001,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clip: {fileID: 8300000, guid: 30d20f1bda80b2649a92b481ce2dde84, type: 3}
   songName: lockmock beatmap
-  bpm: 200
+  bpm: 100
   sig: 4
 --- !u!1 &1261509223
 GameObject:
