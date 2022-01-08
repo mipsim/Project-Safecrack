@@ -157,7 +157,7 @@ public class Conductor : MonoBehaviour {
                     StartCoroutine(SecondSnap());
 
                     // If pressed at right timing
-                    if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat / 2) {
+                    if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat){// / 2) {
                         Debug.Log("good");
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
