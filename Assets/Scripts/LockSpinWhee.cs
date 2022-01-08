@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LockSpinWhee : MonoBehaviour
 {
+    public GameObject lockCam;
     public float rotationSpeed;
 
     // Start is called before the first frame update
@@ -16,5 +17,6 @@ public class LockSpinWhee : MonoBehaviour
     void Update()
     {
         transform.Rotate(0f, 0f, (rotationSpeed * Time.deltaTime));
+        lockCam.transform.Rotate(0f, 0f, (rotationSpeed * Time.deltaTime));
     }
 }

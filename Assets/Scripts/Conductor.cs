@@ -129,8 +129,7 @@ public class Conductor : MonoBehaviour {
             responded = true;
             StartCoroutine("ReturnSnap");
             measureTracker.moving = false;
-            measureTracker.leftTracker.transform.position = measureTracker.leftStart;
-            measureTracker.rightTracker.transform.position = measureTracker.rightStart;
+
             foreach (GameObject slot in numberSlots) {
                 slot.SetActive(false);
             }
@@ -291,6 +290,8 @@ public class Conductor : MonoBehaviour {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStartX, 0), 0.5f);
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStartX, 0), 0.5f);
         }
+        measureTracker.leftTracker.transform.position = new Vector2(measureTracker.leftStart.x, measureTracker.leftStart.y);
+        measureTracker.rightTracker.transform.position = new Vector2(measureTracker.rightStart.x, measureTracker.rightStart.y);
         yield return null;
     }
 
