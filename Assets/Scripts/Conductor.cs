@@ -45,6 +45,7 @@ public class Conductor : MonoBehaviour {
 
     public GameObject locke;
     private LockSpinWhee lockSpin;
+    public MeasureTracker measureTracker;
 
     private bool clickPlayed = false;
     private bool responded = false;
@@ -86,7 +87,7 @@ public class Conductor : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        Debug.Log(songPosition + ", " + targetBeatPosition);
+        //Debug.Log(songPosition + ", " + targetBeatPosition);
         if (!musicSource.isPlaying) {
             if (Input.GetKeyDown(KeyCode.Q)) {
                 if (songListPosition > 0) {
@@ -109,6 +110,9 @@ public class Conductor : MonoBehaviour {
             lockSpin.rotationSpeed = 0f;
             StopAllCoroutines();
             StartCoroutine("ReturnSnap");
+            measureTracker.moving = false;
+            measureTracker.leftTracker.transform.position = measureTracker.leftStart;
+            measureTracker.rightTracker.transform.position = measureTracker.rightStart;
         }
         if (Input.GetKeyDown(KeyCode.Space)) {
             // Start the song with space
@@ -122,6 +126,7 @@ public class Conductor : MonoBehaviour {
                 // Start spinning lock
                 lockSpin.rotationSpeed = 100f;
 
+                measureTracker.moving = true;
                 // 2 seconds later, determine click timing
                 Invoke("DetermineClick", invokeDelay);
             }
@@ -165,7 +170,11 @@ public class Conductor : MonoBehaviour {
                 SFXManager.instance.PlaySound("click");
             }
             if (songPosition > targetBeatPosition && !responded && targetBeatPosition != 0) {
-                StartCoroutine(ResponseTwitch());
+                StartCoroutine("ResponseTwitch");
+
+                StopAllCoroutines();
+                StartCoroutine("ReturnSnap");
+                DetermineClick();
             }
         }
 
@@ -216,6 +225,12 @@ public class Conductor : MonoBehaviour {
     }
 
     public IEnumerator ReturnSnap() {
+        if (!responded) {
+            SFXManager.instance.PlaySound("wrong");
+
+            yield return new WaitForSeconds(0.5f);
+
+        }
         while (leftBar.transform.position.x != leftStartX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStartX, 0), 0.5f);
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStartX, 0), 0.5f);
