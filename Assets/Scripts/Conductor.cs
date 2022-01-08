@@ -16,7 +16,7 @@ public class Conductor : MonoBehaviour {
     public string songName;
 
     //The number of seconds for each song beat
-    public float milliSecPerBeat;
+    public float msPerBeat;
 
     //Current song position, in milliseconds
     public float songPosition;
@@ -87,7 +87,7 @@ public class Conductor : MonoBehaviour {
 
 
         //Calculate the number of seconds in each beat
-        milliSecPerBeat = 60000f / songBpm;
+        msPerBeat = 60000f / songBpm;
 
         // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
         measureLength = 60000f / (songBpm / timeSig);
@@ -157,7 +157,7 @@ public class Conductor : MonoBehaviour {
                     StartCoroutine(SecondSnap());
 
                     // If pressed at right timing
-                    if (Mathf.Abs(targetBeatPosition - songPosition) < milliSecPerBeat){// / 2) {
+                    if (Mathf.Abs(targetBeatPosition - songPosition) < msPerBeat){// / 2) {
                         Debug.Log("good");
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
@@ -197,7 +197,7 @@ public class Conductor : MonoBehaviour {
             //songPositionInBeats = songPosition / secPerBeat;
 
             // when we get to the randomly generated beat position, play the click
-            if (Mathf.Abs(clickBeatPosition - songPosition) < milliSecPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
+            if (Mathf.Abs(clickBeatPosition - songPosition) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
                 clickPlayed = true;
                 StartCoroutine(FirstSnap());
                 Debug.Log("click");
@@ -220,7 +220,7 @@ public class Conductor : MonoBehaviour {
         songBpm = bpm;
         timeSig = sig;
         //Calculate the number of seconds in each beat
-        milliSecPerBeat = 60000f / songBpm;
+        msPerBeat = 60000f / songBpm;
 
         // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
         measureLength = 60000f / (songBpm / timeSig);
@@ -234,14 +234,19 @@ public class Conductor : MonoBehaviour {
     public void DetermineClick() {
         // Chooses a position in the song between current pos and the next x amount of beats (in this case 24), with a delay 
         //clickBeatPosition = (int)Random.Range(songPositionInBeats + (songBpm / 8f), songPositionInBeats + 24 + (songBpm / 8f));
-        clickBeatPosition = (int)(songPosition + 10.7f * milliSecPerBeat);
-
+        clickBeatPosition = (int)( ((songPosition%msPerBeat)+measureLength) + (int)Random.Range(0, 4) * msPerBeat);
+                                    //  current measure      + 1 measure
         // should be one measure after the randomBeat
         targetBeatPosition = clickBeatPosition + measureLength;
 
         clickPlayed = false;
         responded = false;
     }
+
+    // bpm: 100
+    // 1 measure is 4 beats
+    // ms/beat: 600
+    // 1 measure: 2400 ms
 
     public void CalculateSixteenths() {
         for (int i = 0; i < 16; i++) {
