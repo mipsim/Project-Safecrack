@@ -35,6 +35,7 @@ public class Conductor : MonoBehaviour {
 
     // the target beat that you should hit space on (1 measure later)
     public float targetBeatPosition;
+    public float targetSongPosition;
 
     public GameObject leftBar;
     public GameObject rightBar;
@@ -69,12 +70,7 @@ public class Conductor : MonoBehaviour {
     void Start() {
         //Load the AudioSource attached to the Conductor GameObject
         musicSource = GetComponent<AudioSource>();
-        songBpm = songList[0].GetComponent<SongData>().bpm;
-        timeSig = songList[0].GetComponent<SongData>().sig;
-        musicSource.clip = songList[0].GetComponent<SongData>().clip;
-        songName = songList[0].GetComponent<SongData>().songName;
-        currentlyPlaying.text = "Currently playing: " + songName;
-        currentBPM.text = "BPM: " + songBpm;
+        lockSpin = locke.GetComponent<LockSpinWhee>();
 
         // record bar starting positions/midpoints
         leftStartX = leftBar.transform.position.x;
@@ -82,29 +78,24 @@ public class Conductor : MonoBehaviour {
         leftMidpointX = (leftStartX + locke.transform.position.x) / 2;
         rightMidpointX = (rightStartX + locke.transform.position.x) / 2;
 
-        lockSpin = locke.GetComponent<LockSpinWhee>();
 
-
-
-        //Calculate the number of seconds in each beat
-        msPerBeat = 60000f / songBpm;
-
-        // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
-        measureLength = 60000f / (songBpm / timeSig);
-
+        // Initialize dictionary with 16 0's
         for (int i = 0; i < 16; i++) {
             lockNumbers.Add(i, 0);
         }
 
-        CalculateSixteenths();
+        // Set current song to song 0 and assign/calculate song data
+        var currentSong = songList[0];
+        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
     }
 
     // Update is called once per frame
     void Update() {
+        // Update score and highscore text
         comboText.text = "COMBO: " + score;
         highscoreText.text = "HIGHSCORE: " + highscore;
 
-        //Debug.Log(songPosition + ", " + targetBeatPosition);
+        // Use Q/E to swap between songs
         if (!musicSource.isPlaying) {
             if (Input.GetKeyDown(KeyCode.Q)) {
                 if (songListPosition > 0) {
@@ -122,6 +113,7 @@ public class Conductor : MonoBehaviour {
             }
         }
 
+        // Use ESC to stop the song
         if (Input.GetKeyDown(KeyCode.Escape) && musicSource.isPlaying) {
             musicSource.Stop();
             lockSpin.rotationSpeed = 0f;
@@ -135,6 +127,7 @@ public class Conductor : MonoBehaviour {
             }
             score = 0;
         }
+
         if (Input.GetKeyDown(KeyCode.Space)) {
             // Start the song with space
             if (!musicSource.isPlaying) {
@@ -153,12 +146,12 @@ public class Conductor : MonoBehaviour {
                 
             }
             else {
-                if (targetBeatPosition != 0f) {
+                // If target beat determined and not yet clicked
+                if (targetBeatPosition != 0f && !responded) {
                     StartCoroutine(SecondSnap());
 
                     // If pressed at right timing
-                    if (Mathf.Abs(targetBeatPosition - songPosition) < msPerBeat){// / 2) {
-                        Debug.Log("good");
+                    if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat){// / 2) {
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                         SFXManager.instance.PlaySound("correct");
@@ -176,14 +169,13 @@ public class Conductor : MonoBehaviour {
                         }
                     }
                     else {
-                        Debug.Log("ur bad");
                         SFXManager.instance.PlaySound("wrong");
                         score = 0;
                     }
                     Invoke("DetermineClick", invokeDelay);
                     StopAllCoroutines();
                     StartCoroutine("ReturnSnap");
-                    Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
+                    //Debug.Log("target: " + targetBeatPosition + " what u got: " + songPosition);
                 }
 
             }
@@ -193,17 +185,14 @@ public class Conductor : MonoBehaviour {
             // determine how many seconds since the song started
             songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
 
-            // determine how many beats since the song started
-            //songPositionInBeats = songPosition / secPerBeat;
-
             // when we get to the randomly generated beat position, play the click
-            if (Mathf.Abs(clickBeatPosition - songPosition) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
+            if (Mathf.Abs(targetSongPosition - songPosition - measureLength) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
                 clickPlayed = true;
                 StartCoroutine(FirstSnap());
                 Debug.Log("click");
                 SFXManager.instance.PlaySound("click");
             }
-            if (songPosition > targetBeatPosition && !responded && targetBeatPosition != 0) {
+            if (songPosition > targetSongPosition && !responded && targetBeatPosition != 0) {
                 StartCoroutine("ResponseTwitch");
 
                 StopAllCoroutines();
@@ -219,15 +208,10 @@ public class Conductor : MonoBehaviour {
         songName = _name;
         songBpm = bpm;
         timeSig = sig;
-        //Calculate the number of seconds in each beat
-        msPerBeat = 60000f / songBpm;
-
-        // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
-        measureLength = 60000f / (songBpm / timeSig);
 
         currentlyPlaying.text = "Currently playing: " + songName;
         currentBPM.text = "BPM: " + songBpm;
-        CalculateSixteenths();
+        CalculateSongInfo();
     }
 
     // Chooses random beat to play a click within a time window
@@ -239,6 +223,8 @@ public class Conductor : MonoBehaviour {
         // should be one measure after the randomBeat
         targetBeatPosition = clickBeatPosition + measureLength;
 
+        targetSongPosition = songPosition + targetBeatPosition;
+
         clickPlayed = false;
         responded = false;
     }
@@ -248,11 +234,15 @@ public class Conductor : MonoBehaviour {
     // ms/beat: 600
     // 1 measure: 2400 ms
 
-    public void CalculateSixteenths() {
+    public void CalculateSongInfo() {
+        //Calculate the number of seconds in each beat
+        msPerBeat = 60000f / songBpm;
+
+        // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
+        measureLength = 60000f / (songBpm / timeSig);
+
         for (int i = 0; i < 16; i++) {
-            //Debug.Log(measureLength);
             lockNumbers[i] =  (int)((i / 16f) * measureLength);
-            //Debug.Log(lockNumbers[i]);
         }
     }
 
@@ -284,12 +274,6 @@ public class Conductor : MonoBehaviour {
     }
 
     public IEnumerator ReturnSnap() {
-        //if (!responded) {
-        //    SFXManager.instance.PlaySound("wrong");
-
-        //    yield return new WaitForSeconds(0.25f);
-
-        //}
         yield return new WaitForSeconds(0.5f);
         while (leftBar.transform.position.x != leftStartX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStartX, 0), 0.5f);
