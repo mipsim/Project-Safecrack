@@ -37,6 +37,7 @@ public class Conductor : MonoBehaviour {
     // the target beat that you should hit space on (1 measure later)
     public float targetBeatPosition;
     public float targetSongPosition;
+    public float previousTargetSongPosition;
 
     public GameObject leftBar;
     public GameObject rightBar;
@@ -153,12 +154,28 @@ public class Conductor : MonoBehaviour {
             else {
                 // If target beat determined and not yet clicked
                 if (clickPlayed && !responded) {
-                    // determine new click time and snap to middle then back
-                    StartCoroutine("SecondSnap");
-                    DetermineClick();
+                    //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
+                    
 
-                    // If pressed at right timing
+                    // If pressed at right timing (or earlier)
                     if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat){// / 2) {
+                        // spin other direction
+                        lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
+                        SFXManager.instance.PlaySound("correct");
+                        int hitNote = (int)(songPosition % measureLength);
+
+                        for (int i = 0; i < 15; i++) {
+                            if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
+                                DisplayNumber(i);
+                                break;
+                            }
+                        }
+                        score++;
+                        if (highscore < score) {
+                            highscore = score;
+                        }
+                    }
+                    else if (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat/2){
                         // spin other direction
                         lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                         SFXManager.instance.PlaySound("correct");
@@ -179,6 +196,9 @@ public class Conductor : MonoBehaviour {
                         SFXManager.instance.PlaySound("wrong");
                         score = 0;
                     }
+                    // determine new click time and snap to middle then back
+                    StartCoroutine("SecondSnap");
+                    DetermineClick();
                 }
             }
         }
@@ -196,8 +216,8 @@ public class Conductor : MonoBehaviour {
             if (songPosition > targetSongPosition && !responded && clickPlayed) {
                 DetermineClick();
                 StartCoroutine("ResponseTwitch");
-                SFXManager.instance.PlaySound("wrong");
-                score = 0;
+                //SFXManager.instance.PlaySound("wrong");
+                //score = 0;
             }
         }
 
@@ -230,8 +250,7 @@ public class Conductor : MonoBehaviour {
 
     // Chooses random beat to play a click within a time window
     public void DetermineClick() {
-        clickPlayed = false;
-        responded = false;
+        StartCoroutine("ClickPlayed");
         if (songPosition >= clickBeatPosition || targetSongPosition == 0) {
             // Detects if there's a beatmap component and then proceeeds to click on those only
             if (songList[songListPosition].GetComponent<Beatmap>()) {
@@ -242,17 +261,26 @@ public class Conductor : MonoBehaviour {
                 beatmapClickPosition = (beatmap.measureList[beatmapPosition] - 1) * measureLength + beatmap.beatList[beatmapPosition] * msPerBeat/2;
                 targetBeatPosition = beatmapClickPosition + measureMultiplier * measureLength; // beatmap specific multiplier
                 beatmapPosition++;
+                previousTargetSongPosition = targetSongPosition;
                 targetSongPosition = targetBeatPosition;
 
             }
             else {
                 clickBeatPosition = (int)(((songPosition % msPerBeat) + measureLength) + (int)Random.Range(0, timeSig) * msPerBeat);
                 targetBeatPosition = clickBeatPosition + measureMultiplier * measureLength; // beatmap specific multiplier
+                previousTargetSongPosition = targetSongPosition;
                 targetSongPosition = songPosition + targetBeatPosition;
             }
 
 
         }
+
+    }
+
+    public IEnumerator ClickPlayed() {
+        yield return new WaitForSeconds(msPerBeat/1000);
+        clickPlayed = false;
+        responded = false;
 
     }
 
