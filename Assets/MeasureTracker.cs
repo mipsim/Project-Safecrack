@@ -26,7 +26,7 @@ public class MeasureTracker : MonoBehaviour
     // Update is called once per frame
     void Update() {
         if (moving) {
-            float y = Mathf.PingPong((float)(AudioSettings.dspTime - conductor.dspSongTime) * 500f * 16.66f / conductor.measureLength, 8.33f) - 8.33f / 2;
+            float y = Mathf.PingPong((float)(AudioSettings.dspTime - conductor.dspSongTime) * 500f * 4.5f / conductor.measureLength, 4.5f) - 4.5f / 2;
             leftTracker.transform.position = new Vector3(leftTracker.transform.position.x, -y, 0);
             rightTracker.transform.position = new Vector3(rightTracker.transform.position.x, y, 0);
         }

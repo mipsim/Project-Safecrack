@@ -124,7 +124,7 @@ public class Conductor : MonoBehaviour {
             responded = true;
             StartCoroutine("ReturnSnap");
             measureTracker.moving = false;
-
+            beatmapPosition = 0;
             foreach (GameObject slot in numberSlots) {
                 slot.SetActive(false);
             }
