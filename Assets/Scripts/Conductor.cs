@@ -181,6 +181,7 @@ public class Conductor : MonoBehaviour {
             }
 
             if (Input.GetKeyDown(KeyCode.Space)) {
+                Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
                 StartCoroutine("PressButton");
                 // Start the song with space
                 if (!gameStarted && !gameEnded) {
@@ -265,7 +266,8 @@ public class Conductor : MonoBehaviour {
                 }
 
                 // if the song position passes your click position and you don't click, determine a new click and then snap to middle and snap back
-                if (songPosition > targetSongPosition + (msPerBeat/1000/2) && !responded && clickPlayed) {
+                if (songPosition > targetSongPosition + msPerBeat/2 && !responded && clickPlayed) {
+
                     DetermineClick();
                     StartCoroutine("ResponseTwitch");
                 }
