@@ -6,7 +6,6 @@ public class Beatmap : MonoBehaviour
 {
     public int[] measureList;
     public int[] beatList;
-
     // Start is called before the first frame update
     void Start()
     {

@@ -47,14 +47,14 @@ public class Conductor : MonoBehaviour {
     private float rightMidpointX;
 
     public GameObject locke;
-    private LockSpinWhee lockSpin;
+    public LockSpinWhee lockSpin;
     public MeasureTracker measureTracker;
 
     public bool clickPlayed = false;
     public bool responded = false;
-
-    public Dictionary<int, int> lockNumbers = new Dictionary<int, int>();
-    public GameObject[] numberSlots;
+    public bool gameStarted;
+    //public Dictionary<int, int> lockNumbers = new Dictionary<int, int>();
+    //public GameObject[] numberSlots;
 
     public TextMeshPro currentlyPlaying;
     public TextMeshPro currentBPM;
@@ -62,15 +62,13 @@ public class Conductor : MonoBehaviour {
     public SongData currentSong;
     public int songListPosition;
 
-    public TextMeshProUGUI comboText;
-    public TextMeshProUGUI highscoreText;
-    public GameObject songTime;
-    public int score;
-    public int highscore;
+    public static Conductor instance;
     public int measureMultiplier = 1;
+    public GameObject settingsCanvas;
 
     // Start is called before the first frame update
     void Start() {
+        instance = this;
         //Load the AudioSource attached to the Conductor GameObject
         musicSource = GetComponent<AudioSource>();
         lockSpin = locke.GetComponent<LockSpinWhee>();
@@ -82,10 +80,10 @@ public class Conductor : MonoBehaviour {
         rightMidpointX = (rightStartX + locke.transform.position.x) / 2;
 
 
-        // Initialize dictionary with 16 0's
-        for (int i = 0; i < 16; i++) {
-            lockNumbers.Add(i, 0);
-        }
+        //// Initialize dictionary with 16 0's
+        //for (int i = 0; i < 16; i++) {
+        //    lockNumbers.Add(i, 0);
+        //}
 
         // Set current song to song 0 and assign/calculate song data
         currentSong = songList[0];
@@ -94,133 +92,153 @@ public class Conductor : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        // Update score and highscore text
-        comboText.text = "COMBO: " + score;
-        highscoreText.text = "HIGHSCORE: " + highscore;
+        
 
-        // Use Q/E to swap between songs
-        if (!musicSource.isPlaying) {
-            if (Input.GetKeyDown(KeyCode.Q)) {
-                if (songListPosition > 0) {
-                    songListPosition--;
-                    currentSong = songList[songListPosition];
-                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.E)) {
-                if (songListPosition < songList.Count) {
-                    songListPosition++;
-                    currentSong = songList[songListPosition];
-                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                }
-            }
-        }
 
-        // Use ESC to stop the song
-        if (Input.GetKeyDown(KeyCode.Escape) && musicSource.isPlaying) {
-            musicSource.Stop();
-            lockSpin.rotationSpeed = 0f;
-            StopAllCoroutines();
-            responded = true;
-            StartCoroutine("ReturnSnap");
-            measureTracker.moving = false;
-            beatmapPosition = 0;
-            foreach (GameObject slot in numberSlots) {
-                slot.SetActive(false);
-            }
-            SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-            songTime.SetActive(true);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            // Start the song with space
-            if (!musicSource.isPlaying) {
-                songTime.SetActive(false);
-
-                // Record the time when the music starts
-                dspSongTime = (float)AudioSettings.dspTime;
-
-                // Start the music
-                musicSource.Play();
-
-                // Start spinning lock
+        if (settingsCanvas.activeSelf && Input.GetKeyDown(KeyCode.Escape)) {
+           
+            if (gameStarted) {
                 lockSpin.rotationSpeed = 100f;
-                responded = false;
-                clickPlayed = false;
+                musicSource.UnPause();
                 measureTracker.moving = true;
-                DetermineClick();
-
             }
-            else {
-                // If target beat determined and not yet clicked
-                if (clickPlayed && !responded) {
-                    //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
-                    
+            
+            settingsCanvas.SetActive(false);
+        }
 
-                    // If pressed at right timing (or earlier)
-                    if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat){// / 2) {
-                        // spin other direction
-                        lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
-                        SFXManager.instance.PlaySound("correct");
-                        int hitNote = (int)(songPosition % measureLength);
+        else if (!settingsCanvas.activeSelf) {
+            // Use Q/E to swap between songs
+            if (!musicSource.isPlaying) {
+                if (Input.GetKeyDown(KeyCode.Q)) {
+                    if (songListPosition > 0) {
+                        songListPosition--;
+                        currentSong = songList[songListPosition];
+                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.E)) {
+                    if (songListPosition < songList.Count-1) {
+                        songListPosition++;
+                        currentSong = songList[songListPosition];
+                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                    }
+                }
+            }
 
-                        for (int i = 0; i < 15; i++) {
-                            if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
-                                DisplayNumber(i);
-                                break;
-                            }
-                        }
-                        score++;
-                        if (highscore < score) {
-                            highscore = score;
-                        }
-                    }
-                    else if (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat/2){
-                        // spin other direction
-                        lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
-                        SFXManager.instance.PlaySound("correct");
-                        int hitNote = (int)(songPosition % measureLength);
+            // Use ESC to stop the song
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                if (gameStarted) {
+                    musicSource.Pause();
+                    measureTracker.moving = false;
+                    lockSpin.rotationSpeed = 0f;
+                }
+                settingsCanvas.SetActive(true);
+                
+            }
 
-                        for (int i = 0; i < 15; i++) {
-                            if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
-                                DisplayNumber(i);
-                                break;
-                            }
-                        }
-                        score++;
-                        if (highscore < score) {
-                            highscore = score;
-                        }
-                    }
-                    else {
-                        SFXManager.instance.PlaySound("wrong");
-                        score = 0;
-                    }
-                    // determine new click time and snap to middle then back
-                    StartCoroutine("SecondSnap");
+            if (Input.GetKeyDown(KeyCode.Space)) {
+                // Start the song with space
+                if (!gameStarted) {
+                    gameStarted = true;
+
+                    // Record the time when the music starts
+                    dspSongTime = (float)AudioSettings.dspTime;
+
+                    // Start the music
+                    musicSource.Play();
+
+                    // Start spinning lock
+                    lockSpin.rotationSpeed = 100f;
+                    responded = false;
+                    clickPlayed = false;
+                    measureTracker.moving = true;
                     DetermineClick();
                 }
+                else {
+                    // If target beat determined and not yet clicked
+                    if (clickPlayed && !responded) {
+                        //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
+
+
+                        // If pressed at right timing (or earlier)
+                        if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat) {// / 2) {
+                                                                                       // spin other direction
+                            lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
+                            SFXManager.instance.PlaySound("correct");
+                            int hitNote = (int)(songPosition % measureLength);
+
+                            //for (int i = 0; i < 15; i++) {
+                            //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
+                            //        DisplayNumber(i);
+                            //        break;
+                            //    }
+                            //}
+
+                        }
+                        else if (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2) {
+                            // spin other direction
+                            lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
+                            SFXManager.instance.PlaySound("correct");
+                            int hitNote = (int)(songPosition % measureLength);
+
+                            //for (int i = 0; i < 15; i++) {
+                            //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
+                            //        DisplayNumber(i);
+                            //        break;
+                            //    }
+                            //}
+                        }
+                        else {
+                            SFXManager.instance.PlaySound("wrong");
+                        }
+                        // determine new click time and snap to middle then back
+                        StartCoroutine("SecondSnap");
+                        DetermineClick();
+                    }
+                }
+            }
+
+            if (musicSource.isPlaying) {
+                // determine how many seconds since the song started
+                songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
+
+                // when we get to the randomly generated beat position, play the click
+                if (Mathf.Abs(targetSongPosition - songPosition - measureMultiplier * measureLength) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
+                    StartCoroutine(FirstSnap());
+                }
+
+                // if the song position passes your click position and you don't click, determine a new click and then snap to middle and snap back
+                if (songPosition > targetSongPosition && !responded && clickPlayed) {
+                    DetermineClick();
+                    StartCoroutine("ResponseTwitch");
+                    //SFXManager.instance.PlaySound("wrong");
+                    //score = 0;
+                }
             }
         }
+        
 
-        if (musicSource.isPlaying) {
-            // determine how many seconds since the song started
-            songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
+    }
 
-            // when we get to the randomly generated beat position, play the click
-            if (Mathf.Abs(targetSongPosition - songPosition - measureMultiplier * measureLength) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
-                StartCoroutine(FirstSnap());
+    public void PauseGame() {
+        if (settingsCanvas.activeSelf) {
+            if (gameStarted) {
+                lockSpin.rotationSpeed = 100f;
+                musicSource.UnPause();
+                measureTracker.moving = true;
             }
 
-            // if the song position passes your click position and you don't click, determine a new click and then snap to middle and snap back
-            if (songPosition > targetSongPosition && !responded && clickPlayed) {
-                DetermineClick();
-                StartCoroutine("ResponseTwitch");
-                //SFXManager.instance.PlaySound("wrong");
-                //score = 0;
-            }
+            settingsCanvas.SetActive(false);
         }
 
+        else if (!settingsCanvas.activeSelf) {
+            if (gameStarted) {
+                musicSource.Pause();
+                measureTracker.moving = false;
+                lockSpin.rotationSpeed = 0f;
+            }
+            settingsCanvas.SetActive(true);
+        }
     }
 
     public void SwitchSongs(AudioClip clip, string _name, int bpm, int sig) {
@@ -229,10 +247,9 @@ public class Conductor : MonoBehaviour {
         songBpm = bpm;
         timeSig = sig;
 
-        currentlyPlaying.text = "Currently playing: " + songName;
-        currentBPM.text = "BPM: " + songBpm;
+        currentlyPlaying.text = songName;
+        currentBPM.text = "" + songBpm;
 
-        score = 0;
         clickBeatPosition = 0;
         beatmapPosition = 0;
         beatmapClickPosition = 0;
@@ -296,21 +313,35 @@ public class Conductor : MonoBehaviour {
         // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
         measureLength = 60000f / (songBpm / timeSig);
 
-        for (int i = 0; i < 16; i++) {
-            lockNumbers[i] =  (int)((i / 16f) * measureLength);
-        }
+        //for (int i = 0; i < 16; i++) {
+        //    lockNumbers[i] =  (int)((i / 16f) * measureLength);
+        //}
     }
 
-    public void DisplayNumber(int hit) {
-        foreach (GameObject slot in numberSlots) {
-            if (!slot.activeSelf) {
-                slot.SetActive(true);
-                slot.GetComponent<TextMeshProUGUI>().text = "" + hit;
-                break;
-            }
-        }
+    //public void DisplayNumber(int hit) {
+    //    foreach (GameObject slot in numberSlots) {
+    //        if (!slot.activeSelf) {
+    //            slot.SetActive(true);
+    //            slot.GetComponent<TextMeshProUGUI>().text = "" + hit;
+    //            break;
+    //        }
+    //    }
+    //}
+    public void ResetSong() {
+        gameStarted = false;
+        settingsCanvas.SetActive(false);
+        musicSource.Stop();
+        measureTracker.moving = false;
+        lockSpin.rotationSpeed = 0f;
+        StopAllCoroutines();
+        responded = true;
+        StartCoroutine("ReturnSnap");
+        beatmapPosition = 0;
+        //foreach (GameObject slot in numberSlots) {
+        //    slot.SetActive(false);
+        //}
+        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
     }
-
     public IEnumerator FirstSnap() {
         clickPlayed = true;
         SFXManager.instance.PlaySound("click");
@@ -349,12 +380,6 @@ public class Conductor : MonoBehaviour {
         measureTracker.leftTracker.transform.position = new Vector2(measureTracker.leftStart.x, measureTracker.leftStart.y);
         measureTracker.rightTracker.transform.position = new Vector2(measureTracker.rightStart.x, measureTracker.rightStart.y);
         yield return null;
-    }
-
-    
-
-    public void ResetHighscore() {
-        highscore = 0;
     }
 
     public void ChangeMusicVolume(float vol) {
