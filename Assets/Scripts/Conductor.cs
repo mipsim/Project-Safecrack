@@ -275,7 +275,7 @@ public class Conductor : MonoBehaviour {
                 if (beatmapPosition >= 10) {
                     measureMultiplier = 1;
                 }
-                beatmapClickPosition = (beatmap.measureList[beatmapPosition] - 1) * measureLength + beatmap.beatList[beatmapPosition] * msPerBeat/2;
+                beatmapClickPosition = (beatmap.clickMeasureList[beatmapPosition] - 1) * measureLength + beatmap.clickBeatList[beatmapPosition] * msPerBeat/2;
                 targetBeatPosition = beatmapClickPosition + measureMultiplier * measureLength; // beatmap specific multiplier
                 beatmapPosition++;
                 previousTargetSongPosition = targetSongPosition;

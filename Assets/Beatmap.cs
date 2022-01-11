@@ -10,7 +10,7 @@ public class Beatmap : MonoBehaviour
     public List<int> clickMeasureList = new List<int>();
     public List<int> clickBeatList = new List<int>();
 
-    public TextAsset playerHitBeatmap;
+    public TextAsset playerBeatmap;
     private string[] playerCsv;
     public List<int> playerMeasureList = new List<int>();
     public List<int> playerBeatList = new List<int>();
