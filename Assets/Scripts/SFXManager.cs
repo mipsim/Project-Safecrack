@@ -6,7 +6,7 @@ public class SFXManager : MonoBehaviour
 {
     public static SFXManager instance;
     public AudioSource sfxSource;
-    public AudioClip click, correct, wrong, button;
+    public AudioClip click, correct, wrong, button, clear;
 
     // Start is called before the first frame update
     void Start()
@@ -35,6 +35,9 @@ public class SFXManager : MonoBehaviour
                 break;
             case "button":
                 sfxSource.PlayOneShot(button);
+                break;
+            case "clear":
+                sfxSource.PlayOneShot(clear);
                 break;
             default:
                 break;

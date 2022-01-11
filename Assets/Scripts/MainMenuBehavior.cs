@@ -14,6 +14,8 @@ public class MainMenuBehavior : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow, 60);
+
         if (instance != this) {
             instance = this;
         }
@@ -22,7 +24,7 @@ public class MainMenuBehavior : MonoBehaviour
     }
 
     public void GoToGameplay() {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 
     public void GoToCredits()

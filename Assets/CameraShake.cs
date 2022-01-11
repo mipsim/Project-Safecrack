@@ -7,11 +7,11 @@ public class CameraShake : MonoBehaviour
     private float shakeDuration = 0f;
     private float shakeMagnitude = 0.03f;
     private float dampingSpeed = 1.0f;
-    Vector3 initialPosition;
+    public Vector3 initialPosition;
     // Start is called before the first frame update
     void Start()
     {
-        
+        Screen.SetResolution(1920, 1080, FullScreenMode.FullScreenWindow, 60);
     }
 
     // Update is called once per frame
@@ -23,7 +23,6 @@ public class CameraShake : MonoBehaviour
         }
         else {
             shakeDuration = 0f;
-            initialPosition = transform.position;
             transform.localPosition = initialPosition;
         }
     }
