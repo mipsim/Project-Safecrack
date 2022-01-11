@@ -168,7 +168,7 @@ public class Conductor : MonoBehaviour {
                             lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                             SFXManager.instance.PlaySound("correct");
                             int hitNote = (int)(songPosition % measureLength);
-                            sweep.Play("sweep");
+                            sweep.Play("sweep", 0, 0);
                             //for (int i = 0; i < 15; i++) {
                             //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
                             //        DisplayNumber(i);
@@ -182,7 +182,7 @@ public class Conductor : MonoBehaviour {
                             lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                             SFXManager.instance.PlaySound("correct");
                             int hitNote = (int)(songPosition % measureLength);
-                            sweep.Play("sweep");
+                            sweep.Play("sweep", 0, 0);
                             //for (int i = 0; i < 15; i++) {
                             //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
                             //        DisplayNumber(i);
@@ -347,7 +347,7 @@ public class Conductor : MonoBehaviour {
     public IEnumerator FirstSnap() {
         clickPlayed = true;
         SFXManager.instance.PlaySound("click");
-        burst.Play("burst");
+        burst.Play("burst", 0, 0);
         while (leftBar.transform.position.x != leftMidpointX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftMidpointX, 0), 0.5f);
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightMidpointX, 0), 0.5f);
