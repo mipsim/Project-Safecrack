@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class Conductor : MonoBehaviour {
     // These first two might maybe prob should be converted to a new obj type containing both as right now you need to manually input
@@ -389,5 +390,9 @@ public class Conductor : MonoBehaviour {
 
     public void ChangeMusicVolume(float vol) {
         musicSource.volume = vol;
+    }
+
+    public void GoToMainMenu() {
+        SceneManager.LoadScene(1);
     }
 }
