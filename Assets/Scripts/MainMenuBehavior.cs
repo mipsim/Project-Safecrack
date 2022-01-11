@@ -9,12 +9,16 @@ public class MainMenuBehavior : MonoBehaviour
 
     public GameObject TutorialPage;
 
+    private AudioSource buttonClick;
+
     // Start is called before the first frame update
     void Start()
     {
         if (instance != this) {
             instance = this;
         }
+
+        buttonClick = GetComponent<AudioSource>();
     }
 
     public void GoToGameplay() {
@@ -42,5 +46,9 @@ public class MainMenuBehavior : MonoBehaviour
 
     public void PrintName(GameObject buttonObj) {
         Debug.Log(buttonObj.name);
+    }
+
+    public void PlayButtonSound() { 
+        buttonClick.Play();
     }
 }
