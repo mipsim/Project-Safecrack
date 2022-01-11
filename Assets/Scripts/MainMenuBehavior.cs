@@ -23,7 +23,7 @@ public class MainMenuBehavior : MonoBehaviour
 
     public void GoToCredits()
     {
-
+        SceneManager.LoadScene(2);
     }
 
     public void OpenTutorial()
