@@ -35,7 +35,6 @@ public class Conductor : MonoBehaviour {
     public float beatmapClickPosition;
 
     // the target beat that you should hit space on (1 measure later)
-    public float targetBeatPosition;
     public float targetSongPosition;
     public float previousTargetSongPosition;
 
@@ -205,7 +204,8 @@ public class Conductor : MonoBehaviour {
                 songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
 
                 // when we get to the randomly generated beat position, play the click
-                if (Mathf.Abs(targetSongPosition - songPosition - measureMultiplier * measureLength) < msPerBeat / 2 && targetBeatPosition != 0 && !clickPlayed) {
+                if (Mathf.Abs(songPosition-beatmapClickPosition) < 1f && !clickPlayed) {
+                    Debug.Log(songPosition);
                     StartCoroutine(FirstSnap());
                 }
 
@@ -213,8 +213,6 @@ public class Conductor : MonoBehaviour {
                 if (songPosition > targetSongPosition && !responded && clickPlayed) {
                     DetermineClick();
                     StartCoroutine("ResponseTwitch");
-                    //SFXManager.instance.PlaySound("wrong");
-                    //score = 0;
                 }
             }
         }
@@ -255,43 +253,31 @@ public class Conductor : MonoBehaviour {
         clickBeatPosition = 0;
         beatmapPosition = 0;
         beatmapClickPosition = 0;
-        targetBeatPosition = 0;
         targetSongPosition = 0;
 
-        if (currentSong.GetComponent<Beatmap>()) {
-            measureMultiplier = 2;
-        }
-        else {
-            measureMultiplier = 1;
-        }
         CalculateSongInfo();
     }
 
     // Chooses random beat to play a click within a time window
     public void DetermineClick() {
         StartCoroutine("ClickPlayed");
-        if (songPosition >= clickBeatPosition || targetSongPosition == 0) {
-            // Detects if there's a beatmap component and then proceeeds to click on those only
-            if (songList[songListPosition].GetComponent<Beatmap>()) {
-                var beatmap = songList[songListPosition].GetComponent<Beatmap>();
+        if (currentSong.GetComponent<Beatmap>()) {
+            var beatmap = songList[songListPosition].GetComponent<Beatmap>();
 
-                beatmapClickPosition = (beatmap.clickMeasureList[beatmapPosition] - 1) * measureLength + beatmap.clickBeatList[beatmapPosition] * msPerBeat/2;
-                targetBeatPosition = (beatmap.playerMeasureList[beatmapPosition] - 1) * measureLength + beatmap.playerBeatList[beatmapPosition] * msPerBeat / 2;
-                beatmapPosition++;
-                previousTargetSongPosition = targetSongPosition;
-                targetSongPosition = targetBeatPosition;
-
-            }
-            else {
-                clickBeatPosition = (int)(((songPosition % msPerBeat) + measureLength) + (int)Random.Range(0, timeSig) * msPerBeat);
-                targetBeatPosition = clickBeatPosition + measureMultiplier * measureLength; // beatmap specific multiplier
-                previousTargetSongPosition = targetSongPosition;
-                targetSongPosition = songPosition + targetBeatPosition;
-            }
-
-
+            beatmapClickPosition = (int)((beatmap.clickMeasureList[beatmapPosition] - 1) * measureLength + beatmap.clickBeatList[beatmapPosition] * msPerBeat / 2);
+            previousTargetSongPosition = targetSongPosition;
+            targetSongPosition = (int)((beatmap.playerMeasureList[beatmapPosition] - 1) * measureLength + beatmap.playerBeatList[beatmapPosition] * msPerBeat / 2);
+            beatmapPosition++;
         }
-
+        //else {
+        //    if (songPosition >= clickBeatPosition) {
+        //            clickBeatPosition = (int)(((songPosition % msPerBeat) + measureLength) + (int)Random.Range(0, timeSig) * msPerBeat);
+        //            targetBeatPosition = clickBeatPosition + measureMultiplier * measureLength; // beatmap specific multiplier
+        //            previousTargetSongPosition = targetSongPosition;
+        //            targetSongPosition = songPosition + targetBeatPosition;
+        //        }
+        //    }
+        //}
     }
 
     public IEnumerator ClickPlayed() {

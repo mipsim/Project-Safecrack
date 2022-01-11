@@ -4986,7 +4986,6 @@ MonoBehaviour:
   musicSource: {fileID: 0}
   clickBeatPosition: 0
   beatmapClickPosition: 0
-  targetBeatPosition: 0
   targetSongPosition: 0
   previousTargetSongPosition: 0
   leftBar: {fileID: 2006123439}
@@ -5001,13 +5000,8 @@ MonoBehaviour:
   currentBPM: {fileID: 360891208}
   songList:
   - {fileID: 1246531774}
-  - {fileID: 1056490558}
   - {fileID: 1190781903}
   - {fileID: 1418783108}
-  - {fileID: 326367768}
-  - {fileID: 1887451019}
-  - {fileID: 566350891}
-  - {fileID: 395251609}
   currentSong: {fileID: 0}
   songListPosition: 0
   measureMultiplier: 0
