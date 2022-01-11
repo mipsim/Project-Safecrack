@@ -425,6 +425,7 @@ public class Conductor : MonoBehaviour {
         gameEnded = false;
         settingsCanvas.SetActive(false);
         musicSource.Stop();
+        StopCoroutine("LockSpin");
         measureTracker.moving = false;
         lockSpin.rotationSpeed = 0f;
         responded = false;
