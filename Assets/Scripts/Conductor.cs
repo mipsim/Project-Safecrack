@@ -66,6 +66,9 @@ public class Conductor : MonoBehaviour {
     public int measureMultiplier = 1;
     public GameObject settingsCanvas;
 
+    public Animator burst;
+    public Animator sweep;
+
     // Start is called before the first frame update
     void Start() {
         instance = this;
@@ -78,7 +81,6 @@ public class Conductor : MonoBehaviour {
         rightStartX = rightBar.transform.position.x;
         leftMidpointX = (leftStartX + locke.transform.position.x) / 2;
         rightMidpointX = (rightStartX + locke.transform.position.x) / 2;
-
 
         //// Initialize dictionary with 16 0's
         //for (int i = 0; i < 16; i++) {
@@ -166,7 +168,7 @@ public class Conductor : MonoBehaviour {
                             lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                             SFXManager.instance.PlaySound("correct");
                             int hitNote = (int)(songPosition % measureLength);
-
+                            sweep.Play("sweep");
                             //for (int i = 0; i < 15; i++) {
                             //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
                             //        DisplayNumber(i);
@@ -180,7 +182,7 @@ public class Conductor : MonoBehaviour {
                             lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                             SFXManager.instance.PlaySound("correct");
                             int hitNote = (int)(songPosition % measureLength);
-
+                            sweep.Play("sweep");
                             //for (int i = 0; i < 15; i++) {
                             //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
                             //        DisplayNumber(i);
@@ -345,6 +347,7 @@ public class Conductor : MonoBehaviour {
     public IEnumerator FirstSnap() {
         clickPlayed = true;
         SFXManager.instance.PlaySound("click");
+        burst.Play("burst");
         while (leftBar.transform.position.x != leftMidpointX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftMidpointX, 0), 0.5f);
             rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightMidpointX, 0), 0.5f);
