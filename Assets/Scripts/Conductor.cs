@@ -42,8 +42,10 @@ public class Conductor : MonoBehaviour {
     public GameObject rightBar;
     private float leftStartX;
     private float leftMidpointX;
+    private float leftStopX;
     private float rightStartX;
     private float rightMidpointX;
+    private float rightStopX;
 
     public GameObject locke;
     public LockSpinWhee lockSpin;
@@ -64,9 +66,14 @@ public class Conductor : MonoBehaviour {
     public static Conductor instance;
     public int measureMultiplier = 1;
     public GameObject settingsCanvas;
+    public GameObject[] deadbolts;
+    public int deadboltCount;
 
     public Animator burst;
     public Animator sweep;
+
+    public AudioClip loadedClip;
+    public AudioClip waitingSong;
 
     // Start is called before the first frame update
     void Start() {
@@ -78,8 +85,10 @@ public class Conductor : MonoBehaviour {
         // record bar starting positions/midpoints
         leftStartX = leftBar.transform.position.x;
         rightStartX = rightBar.transform.position.x;
-        leftMidpointX = (leftStartX + locke.transform.position.x) / 2;
-        rightMidpointX = (rightStartX + locke.transform.position.x) / 2;
+        leftStopX = -2.75f;
+        rightStopX = 2.75f;
+        leftMidpointX = (leftStartX + leftStopX) / 2;
+        rightMidpointX = (rightStartX + rightStopX) / 2;
 
         //// Initialize dictionary with 16 0's
         //for (int i = 0; i < 16; i++) {
@@ -89,13 +98,14 @@ public class Conductor : MonoBehaviour {
         // Set current song to song 0 and assign/calculate song data
         currentSong = songList[0];
         SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+        musicSource.clip = waitingSong;
+        musicSource.loop = true;
+        musicSource.Play();
+        deadbolts = GameObject.FindGameObjectsWithTag("Deadbolt");
     }
 
     // Update is called once per frame
     void Update() {
-        
-
-
         if (settingsCanvas.activeSelf && Input.GetKeyDown(KeyCode.Escape)) {
            
             if (gameStarted) {
@@ -109,7 +119,7 @@ public class Conductor : MonoBehaviour {
 
         else if (!settingsCanvas.activeSelf) {
             // Use Q/E to swap between songs
-            if (!musicSource.isPlaying) {
+            if (musicSource.clip == waitingSong) {
                 if (Input.GetKeyDown(KeyCode.Q)) {
                     if (songListPosition > 0) {
                         songListPosition--;
@@ -140,6 +150,9 @@ public class Conductor : MonoBehaviour {
             if (Input.GetKeyDown(KeyCode.Space)) {
                 // Start the song with space
                 if (!gameStarted) {
+                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                    musicSource.clip = loadedClip;
+                    musicSource.loop = false;
                     gameStarted = true;
 
                     // Record the time when the music starts
@@ -162,12 +175,15 @@ public class Conductor : MonoBehaviour {
 
 
                         // If pressed at right timing (or earlier)
-                        if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat) {// / 2) {
+                        if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat || (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2)) {// / 2) {
                                                                                        // spin other direction
                             lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
                             SFXManager.instance.PlaySound("correct");
                             int hitNote = (int)(songPosition % measureLength);
                             sweep.Play("sweep", 0, 0);
+                            //deadbolts[deadboltCount].SetActive(false);
+                            //deadboltCount++;
+                            Camera.main.GetComponent<CameraShake>().TriggerShake(0.3f);
                             //for (int i = 0; i < 15; i++) {
                             //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
                             //        DisplayNumber(i);
@@ -175,19 +191,6 @@ public class Conductor : MonoBehaviour {
                             //    }
                             //}
 
-                        }
-                        else if (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2) {
-                            // spin other direction
-                            lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
-                            SFXManager.instance.PlaySound("correct");
-                            int hitNote = (int)(songPosition % measureLength);
-                            sweep.Play("sweep", 0, 0);
-                            //for (int i = 0; i < 15; i++) {
-                            //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
-                            //        DisplayNumber(i);
-                            //        break;
-                            //    }
-                            //}
                         }
                         else {
                             SFXManager.instance.PlaySound("wrong");
@@ -199,13 +202,14 @@ public class Conductor : MonoBehaviour {
                 }
             }
 
-            if (musicSource.isPlaying) {
+            if (musicSource.isPlaying && gameStarted) {
                 // determine how many seconds since the song started
                 songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
 
                 // when we get to the randomly generated beat position, play the click
-                if (Mathf.Abs(songPosition-beatmapClickPosition) < 1f && !clickPlayed) {
+                if (Mathf.Abs(songPosition - beatmapClickPosition) < 20 && !clickPlayed){ //Mathf.Abs(songPosition - beatmapClickPosition) < 2f && !clickPlayed) {
                     Debug.Log(songPosition);
+                    SFXManager.instance.PlaySound("click");
                     StartCoroutine(FirstSnap());
                 }
 
@@ -242,7 +246,14 @@ public class Conductor : MonoBehaviour {
     }
 
     public void SwitchSongs(AudioClip clip, string _name, int bpm, int sig) {
-        musicSource.clip = clip;
+        if (musicSource.clip != waitingSong) {
+            musicSource.clip = waitingSong;
+            musicSource.loop = true;
+            musicSource.Play();
+        }
+        
+
+        loadedClip = clip;
         songName = _name;
         songBpm = bpm;
         timeSig = sig;
@@ -255,6 +266,10 @@ public class Conductor : MonoBehaviour {
         beatmapClickPosition = 0;
         targetSongPosition = 0;
 
+        deadboltCount = 0;
+        foreach (GameObject deadbolt in deadbolts) {
+            deadbolt.SetActive(true);
+        }
         CalculateSongInfo();
     }
 
@@ -320,7 +335,7 @@ public class Conductor : MonoBehaviour {
         measureTracker.moving = false;
         lockSpin.rotationSpeed = 0f;
         StopAllCoroutines();
-        responded = true;
+        responded = false;
         StartCoroutine("ReturnSnap");
         beatmapPosition = 0;
         //foreach (GameObject slot in numberSlots) {
@@ -330,7 +345,6 @@ public class Conductor : MonoBehaviour {
     }
     public IEnumerator FirstSnap() {
         clickPlayed = true;
-        SFXManager.instance.PlaySound("click");
         burst.Play("burst", 0, 0);
         while (leftBar.transform.position.x != leftMidpointX) {
             leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftMidpointX, 0), 0.5f);
@@ -341,18 +355,22 @@ public class Conductor : MonoBehaviour {
 
     public IEnumerator SecondSnap() {
         responded = true;
-        while (leftBar.transform.position.x != locke.transform.position.x) {
-            leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 0.5f);
-            rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.5f);
+        while (leftBar.transform.position.x != leftStopX) {
+            leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStopX, leftBar.transform.position.y), 0.5f);
+        }
+        while (rightBar.transform.position.x != rightStopX) {
+            rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStopX, rightBar.transform.position.y), 0.5f);
         }
         StartCoroutine("ReturnSnap");
         yield return null;
     }
 
     public IEnumerator ResponseTwitch() {
-        while (leftBar.transform.position.x != locke.transform.position.x) {
-            leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, locke.transform.position, 0.05f);
-            rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, locke.transform.position, 0.05f);
+        while (leftBar.transform.position.x != leftStopX) {
+            leftBar.transform.position = Vector2.MoveTowards(leftBar.transform.position, new Vector2(leftStopX, leftBar.transform.position.y), 0.5f);
+        }
+        while (rightBar.transform.position.x != rightStopX) {
+            rightBar.transform.position = Vector2.MoveTowards(rightBar.transform.position, new Vector2(rightStopX, rightBar.transform.position.y), 0.5f);
         }
         StartCoroutine("ReturnSnap");
         yield return null;

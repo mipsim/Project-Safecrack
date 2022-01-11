@@ -13,6 +13,7 @@ public class SFXManager : MonoBehaviour
     {
         instance = this;
         sfxSource = GetComponent<AudioSource>();
+        ChangeSFXVolume(sfxSource.volume);
     }
 
     // Update is called once per frame
