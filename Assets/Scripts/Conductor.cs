@@ -274,11 +274,9 @@ public class Conductor : MonoBehaviour {
             // Detects if there's a beatmap component and then proceeeds to click on those only
             if (songList[songListPosition].GetComponent<Beatmap>()) {
                 var beatmap = songList[songListPosition].GetComponent<Beatmap>();
-                if (beatmapPosition >= 10) {
-                    measureMultiplier = 1;
-                }
+
                 beatmapClickPosition = (beatmap.clickMeasureList[beatmapPosition] - 1) * measureLength + beatmap.clickBeatList[beatmapPosition] * msPerBeat/2;
-                targetBeatPosition = beatmapClickPosition + measureMultiplier * measureLength; // beatmap specific multiplier
+                targetBeatPosition = (beatmap.playerMeasureList[beatmapPosition] - 1) * measureLength + beatmap.playerBeatList[beatmapPosition] * msPerBeat / 2;
                 beatmapPosition++;
                 previousTargetSongPosition = targetSongPosition;
                 targetSongPosition = targetBeatPosition;
@@ -297,7 +295,7 @@ public class Conductor : MonoBehaviour {
     }
 
     public IEnumerator ClickPlayed() {
-        yield return new WaitForSeconds(msPerBeat/1000);
+        yield return new WaitForSeconds(msPerBeat/1000/2);
         clickPlayed = false;
         responded = false;
 

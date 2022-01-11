@@ -8,12 +8,12 @@ public class Beatmap : MonoBehaviour
     public TextAsset clickBeatmap;
     private string[] clickCsv;
     public List<int> clickMeasureList = new List<int>();
-    public List<int> clickBeatList = new List<int>();
+    public List<float> clickBeatList = new List<float>();
 
     public TextAsset playerBeatmap;
     private string[] playerCsv;
     public List<int> playerMeasureList = new List<int>();
-    public List<int> playerBeatList = new List<int>();
+    public List<float> playerBeatList = new List<float>();
 
 
     // Start is called before the first frame update
