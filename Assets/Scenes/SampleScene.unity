@@ -3883,7 +3883,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &872375386
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3923,7 +3923,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 99/99
+  m_text: 0/13
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b41b96d7c0930824b9905e945eba8814, type: 2}
   m_sharedMaterial: {fileID: -4998312906879843728, guid: b41b96d7c0930824b9905e945eba8814, type: 2}
@@ -6636,42 +6636,29 @@ MonoBehaviour:
   songPosition: 0
   beatmapPosition: 0
   dspSongTime: 0
-  musicSource: {fileID: 0}
   beatmapClickPosition: 0
-  targetSongPosition: 0
   previousTargetSongPosition: 0
-  leftBar: {fileID: 2006123439}
-  rightBar: {fileID: 1677358330}
-  locke: {fileID: 301032709}
-  lockSpin: {fileID: 0}
-  measureTracker: {fileID: 945994499}
+  targetSongPosition: 0
+  hitNotePosition: 0
+  measureMultiplier: 0
+  totalPoints: 0
+  lockMultiplier: 25
   clickPlayed: 0
   responded: 0
   gameStarted: 0
   gameEnded: 0
-  currentlyPlaying: {fileID: 1986882442}
-  currentBPM: {fileID: 360891208}
   songList:
   - {fileID: 1246531774}
   - {fileID: 1190781903}
   - {fileID: 1418783108}
-  currentSong: {fileID: 0}
-  songListPosition: 0
-  measureMultiplier: 0
+  waitingSong: {fileID: 8300000, guid: e749d1b74232f5e408b587303bf4b907, type: 3}
   settingsCanvas: {fileID: 1626320882}
-  totalPoints: 0
+  scoreText: {fileID: 872375385}
+  currentlyPlaying: {fileID: 1986882442}
+  currentBPM: {fileID: 360891208}
   burst: {fileID: 618188167}
   sweep: {fileID: 1862299122}
   stageclear: {fileID: 2115869735}
-  scoreText: {fileID: 872375385}
-  score: 0
-  loadedClip: {fileID: 0}
-  waitingSong: {fileID: 8300000, guid: e749d1b74232f5e408b587303bf4b907, type: 3}
-  beatmap: {fileID: 0}
-  fade: {fileID: 1787274209}
-  spacebar: {fileID: 415802051}
-  yellowSpace: {fileID: 21300000, guid: bd01ea12bddfc2442a2d4a0ca62ccce8, type: 3}
-  normalSpace: {fileID: 21300000, guid: c8965b93114343547902f2de67017906, type: 3}
   leftbar: {fileID: 2006123439}
   lefttri: {fileID: 2142048888}
   rightbar: {fileID: 1677358330}
@@ -6680,8 +6667,16 @@ MonoBehaviour:
   whitetri: {fileID: 21300000, guid: 109a63fb4a4651c42bab9a71a1151752, type: 3}
   redbar: {fileID: 21300000, guid: f519c3ddc2e202c4a921274339b02647, type: 3}
   redtri: {fileID: 21300000, guid: ef0ffb5e92d615942affbd4ce90a635c, type: 3}
+  leftBar: {fileID: 2006123439}
+  rightBar: {fileID: 1677358330}
+  fade: {fileID: 1787274209}
+  locke: {fileID: 301032709}
+  lockSpin: {fileID: 0}
+  measureTracker: {fileID: 945994499}
+  yellowSpace: {fileID: 21300000, guid: bd01ea12bddfc2442a2d4a0ca62ccce8, type: 3}
+  normalSpace: {fileID: 21300000, guid: c8965b93114343547902f2de67017906, type: 3}
+  spacebar: {fileID: 415802051}
   spacetext: {fileID: 1452584465}
-  lockMultiplier: 25
 --- !u!1 &1592400422
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,38 +5,68 @@ using TMPro;
 using UnityEngine.UI;
 
 public class Conductor : MonoBehaviour {
-    // These first two might maybe prob should be converted to a new obj type containing both as right now you need to manually input
-    //Song beats per minute
-    //This is determined by the song you're trying to sync up to
+    [Header("Song Information")]
+    // These are determined by current song
+    public string songName;
     public float songBpm;
-
     public float timeSig; // should be a tuple, but we only use numerator anyways (ie. time sig 4/4)
-
     public float measureLength;
 
-    public string songName;
-
-    //The number of seconds for each song beat
+    // The number of seconds for each song quarter beat
     public float msPerBeat;
 
-    //Current song position, in milliseconds
+    [Header("Game Information")]
+    // Current song position, in milliseconds
     public float songPosition;
+
+    // Current beatmap position
     public int beatmapPosition;
-    //Current song position, in beats
-    //public float songPositionInBeats;
-
-    //How many seconds have passed since the song started
-    public float dspSongTime;
-
-    //an AudioSource attached to this GameObject that will play the music.
-    public AudioSource musicSource;
 
     // the beat position that the lock clicks at
     public float beatmapClickPosition;
 
     // the target beat that you should hit space on (1 measure later)
-    public float targetSongPosition;
-    public float previousTargetSongPosition;
+    public float previousTargetSongPosition = 0;
+    public float targetSongPosition = 0;
+    public int hitNotePosition = 0;
+
+    [Header("Extra settings and bools")]
+    public int measureMultiplier = 1;
+    public int totalPoints = 0;
+    public float lockMultiplier = 1;
+    public float dspSongTime;
+
+    public bool clickPlayed = false;
+    public bool responded = false;
+    public bool gameStarted = false;
+    public bool gameEnded = false;
+
+    public static Conductor instance;
+
+    // Privates
+    private AudioSource musicSource;
+    private SongData currentSong;
+    private int songListPosition;
+    private AudioClip loadedClip;
+    private Beatmap beatmap;
+
+    // Song list + waiting song 
+    public List<SongData> songList;
+    public AudioClip waitingSong;
+
+    // UI
+    public GameObject settingsCanvas;
+    public GameObject scoreText;
+    public TextMeshPro currentlyPlaying;
+    public TextMeshPro currentBPM;
+
+    // VFX
+    public Animator burst;
+    public Animator sweep;
+    public Animator stageclear;
+
+    public GameObject leftbar, lefttri, rightbar, righttri;
+    public Sprite whitebar, whitetri, redbar, redtri;
 
     public GameObject leftBar;
     public GameObject rightBar;
@@ -47,45 +77,18 @@ public class Conductor : MonoBehaviour {
     private float rightMidpointX;
     private float rightStopX;
 
+    public GameObject fade;
+
+    // Lock and measure stuff
     public GameObject locke;
     public LockSpinWhee lockSpin;
     public MeasureTracker measureTracker;
 
-    public bool clickPlayed = false;
-    public bool responded = false;
-    public bool gameStarted;
-    public bool gameEnded;
-
-
-    public TextMeshPro currentlyPlaying;
-    public TextMeshPro currentBPM;
-    public List<SongData> songList;
-    public SongData currentSong;
-    public int songListPosition;
-
-    public static Conductor instance;
-    public int measureMultiplier = 1;
-    public GameObject settingsCanvas;
-
-    public int totalPoints;
-    public Animator burst;
-    public Animator sweep;
-    public Animator stageclear;
-
-    public GameObject scoreText;
-    public int score;
-    public AudioClip loadedClip;
-    public AudioClip waitingSong;
-    public Beatmap beatmap;
-    public GameObject fade;
-    public GameObject spacebar;
+    // SPACE 
     public Sprite yellowSpace;
     public Sprite normalSpace;
-
-    public GameObject leftbar, lefttri, rightbar, righttri;
-    public Sprite whitebar, whitetri, redbar, redtri;
+    public GameObject spacebar;
     public TextMeshProUGUI spacetext;
-    public float lockMultiplier = 1;
 
     // Start is called before the first frame update
     void Start() {
@@ -176,20 +179,23 @@ public class Conductor : MonoBehaviour {
                 else {
                     // If target beat determined and not yet clicked
                     if (clickPlayed && !responded) {
-                        //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
 
-
-                        // If pressed at right timing (or earlier)
-                        if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat || (songPosition > previousTargetSongPosition && Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2)) {// / 2) {
-                            StartCoroutine("LockSpin");                                                          
+                        // If pressed at right timing (or an eigth of a beat b4/after the target pos)
+                        if (Mathf.Abs(targetSongPosition - songPosition) < msPerBeat / 2 || 
+                            Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2) {
                             // spin other direction
+                            StartCoroutine("LockSpin");                                                          
+
                             SFXManager.instance.PlaySound("correct");
-                            int hitNote = (int)(songPosition % measureLength);
-                            sweep.Play("sweep", 0, 0);
+                            hitNotePosition = (int)(songPosition);
+                            
+                            // update score
                             totalPoints++;
-                            StartCoroutine("FlashWhite");
                             scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
 
+                            // play vfx
+                            StartCoroutine("FlashWhite");
+                            sweep.Play("sweep", 0, 0);
                             Camera.main.GetComponent<CameraShake>().TriggerShake(0.2f);
                         }
                         else {
@@ -216,16 +222,14 @@ public class Conductor : MonoBehaviour {
 
                 }
 
-                // when we get to the randomly generated beat position, play the click
-                if (songPosition > beatmapClickPosition && !clickPlayed){ //Mathf.Abs(songPosition - beatmapClickPosition) < 2f && !clickPlayed) {
-                    Debug.Log(songPosition);
+                // when we get to the beatmap click position, play the click sound and snap
+                if (songPosition > beatmapClickPosition && !clickPlayed){
                     SFXManager.instance.PlaySound("click");
                     StartCoroutine(FirstSnap());
                 }
 
                 // if the song position passes your click position and you don't click, determine a new click and then snap to middle and snap back
                 if (songPosition > targetSongPosition + msPerBeat/2 && !responded && clickPlayed) {
-
                     DetermineClick();
                     StartCoroutine("ResponseTwitch");
                 }
