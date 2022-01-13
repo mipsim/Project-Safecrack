@@ -32,7 +32,6 @@ public class Conductor : MonoBehaviour {
     public AudioSource musicSource;
 
     // the beat position that the lock clicks at
-    public float clickBeatPosition;
     public float beatmapClickPosition;
 
     // the target beat that you should hit space on (1 measure later)
@@ -56,8 +55,7 @@ public class Conductor : MonoBehaviour {
     public bool responded = false;
     public bool gameStarted;
     public bool gameEnded;
-    //public Dictionary<int, int> lockNumbers = new Dictionary<int, int>();
-    //public GameObject[] numberSlots;
+
 
     public TextMeshPro currentlyPlaying;
     public TextMeshPro currentBPM;
@@ -68,8 +66,7 @@ public class Conductor : MonoBehaviour {
     public static Conductor instance;
     public int measureMultiplier = 1;
     public GameObject settingsCanvas;
-    public GameObject[] deadbolts;
-    public int deadboltCount;
+
     public int totalPoints;
     public Animator burst;
     public Animator sweep;
@@ -105,11 +102,6 @@ public class Conductor : MonoBehaviour {
         leftMidpointX = (leftStartX + leftStopX) / 2;
         rightMidpointX = (rightStartX + rightStopX) / 2;
 
-        //// Initialize dictionary with 16 0's
-        //for (int i = 0; i < 16; i++) {
-        //    lockNumbers.Add(i, 0);
-        //}
-
         // Set current song to song 0 and assign/calculate song data
         currentSong = songList[0]; 
         beatmap = currentSong.GetComponent<Beatmap>();
@@ -118,70 +110,44 @@ public class Conductor : MonoBehaviour {
         musicSource.clip = waitingSong;
         musicSource.loop = true;
         musicSource.Play();
-        deadbolts = GameObject.FindGameObjectsWithTag("Deadbolt");
     }
 
     // Update is called once per frame
     void Update() {
-        if (settingsCanvas.activeSelf && Input.GetKeyDown(KeyCode.Escape)) {
-           
-            if (gameStarted) {
-                lockSpin.rotationSpeed = 100f;
-                musicSource.UnPause();
-                measureTracker.moving = true;
-            }
-            
-            settingsCanvas.SetActive(false);
+        // Use ESC to pause/unpause the game
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            PauseGame();
         }
 
-        else if (!settingsCanvas.activeSelf) {
+        // Inputs only allowed while settings menu not open
+        if (!settingsCanvas.activeSelf) {
             // Use Q/E to swap between songs
             if (musicSource.clip == waitingSong) {
-                if (Input.GetKeyDown(KeyCode.Q)) {
-                    if (songListPosition > 0) {
-                        songListPosition--;
-                        currentSong = songList[songListPosition];
-                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                        SFXManager.instance.PlaySound("button");
+                if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.E)) {
+                    if (Input.GetKeyDown(KeyCode.Q)) {
+                        if (songListPosition > 0) {
+                            songListPosition--;
+                        }
+                        else if (songListPosition == 0) {
+                            songListPosition = 2;
+                        }
                     }
-                    else if (songListPosition == 0) {
-                        songListPosition = 2;
-                        currentSong = songList[songListPosition];
-                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                        SFXManager.instance.PlaySound("button");
+                    else {
+                        if (songListPosition < songList.Count - 1) {
+                            songListPosition++;
+                        }
+                        else if (songListPosition == 2) {
+                            songListPosition = 0;
+                        }
                     }
+                    currentSong = songList[songListPosition];
+                    SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
+                    SFXManager.instance.PlaySound("button");
                 }
-                if (Input.GetKeyDown(KeyCode.E)) {
-                    if (songListPosition < songList.Count-1) {
-                        songListPosition++;
-                        currentSong = songList[songListPosition];
-                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                        SFXManager.instance.PlaySound("button");
-
-                    }
-                    else if (songListPosition == 2) {
-                        songListPosition = 0;
-                        currentSong = songList[songListPosition];
-                        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-                        SFXManager.instance.PlaySound("button");
-                    }
-                }
-            }
-
-            // Use ESC to stop the song
-            if (Input.GetKeyDown(KeyCode.Escape)) {
-                if (gameStarted) {
-                    musicSource.Pause();
-                    measureTracker.moving = false;
-                    lockSpin.rotationSpeed = 0f;
-                    spacetext.text = "SPACE TO START";
-                }
-                settingsCanvas.SetActive(true);
-                
             }
 
             if (Input.GetKeyDown(KeyCode.Space)) {
-                Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
+                //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
                 StartCoroutine("PressButton");
                 // Start the song with space
                 if (!gameStarted && !gameEnded) {
@@ -223,16 +189,8 @@ public class Conductor : MonoBehaviour {
                             totalPoints++;
                             StartCoroutine("FlashWhite");
                             scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
-                            //deadbolts[deadboltCount].SetActive(false);
-                            //deadboltCount++;
-                            Camera.main.GetComponent<CameraShake>().TriggerShake(0.2f);
-                            //for (int i = 0; i < 15; i++) {
-                            //    if (hitNote > lockNumbers[i] && hitNote < (int)lockNumbers[i + 1]) {
-                            //        DisplayNumber(i);
-                            //        break;
-                            //    }
-                            //}
 
+                            Camera.main.GetComponent<CameraShake>().TriggerShake(0.2f);
                         }
                         else {
                             SFXManager.instance.PlaySound("wrong");
@@ -288,11 +246,10 @@ public class Conductor : MonoBehaviour {
     public void PauseGame() {
         if (settingsCanvas.activeSelf) {
             if (gameStarted) {
-                lockSpin.rotationSpeed = 100f;
                 musicSource.UnPause();
                 measureTracker.moving = true;
+                lockSpin.rotationSpeed = 100f;
             }
-
             settingsCanvas.SetActive(false);
         }
 
@@ -311,30 +268,39 @@ public class Conductor : MonoBehaviour {
             musicSource.clip = waitingSong;
             musicSource.loop = true;
             musicSource.Play();
-        }
-        
+        }     
 
         loadedClip = clip;
         songName = _name;
         songBpm = bpm;
         timeSig = sig;
 
+        gameStarted = false;
         gameEnded = false;
+        responded = false;
+        clickPlayed = false;
+        measureTracker.moving = false;
+
         totalPoints = 0;
-        currentlyPlaying.text = songName;
-        currentBPM.text = "" + songBpm;
-        beatmap = currentSong.GetComponent<Beatmap>();
-        scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
-        clickBeatPosition = 0;
         beatmapPosition = 0;
         beatmapClickPosition = 0;
         targetSongPosition = 0;
+        lockSpin.rotationSpeed = 0f;
 
-        deadboltCount = 0;
-        foreach (GameObject deadbolt in deadbolts) {
-            deadbolt.SetActive(true);
-        }
+        beatmap = currentSong.GetComponent<Beatmap>();
+        scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
+        currentlyPlaying.text = songName;
+        currentBPM.text = "" + songBpm;  
+
         CalculateSongInfo();
+    }
+
+    public void ResetSong() {
+        settingsCanvas.SetActive(false);
+        musicSource.Stop();
+        StopCoroutine("LockSpin");
+        StartCoroutine("ReturnSnap");
+        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
     }
 
     // Chooses random beat to play a click within a time window
@@ -398,21 +364,9 @@ public class Conductor : MonoBehaviour {
 
         // Measure length in milliseconds (60 seconds per minute / measures per minute) --> measures per minute is bpm / timeSig
         measureLength = 60000f / (songBpm / timeSig);
-
-        //for (int i = 0; i < 16; i++) {
-        //    lockNumbers[i] =  (int)((i / 16f) * measureLength);
-        //}
     }
 
-    //public void DisplayNumber(int hit) {
-    //    foreach (GameObject slot in numberSlots) {
-    //        if (!slot.activeSelf) {
-    //            slot.SetActive(true);
-    //            slot.GetComponent<TextMeshProUGUI>().text = "" + hit;
-    //            break;
-    //        }
-    //    }
-    //}
+
 
     public IEnumerator PressButton() {
         spacebar.GetComponent<Image>().sprite = yellowSpace;
@@ -420,23 +374,7 @@ public class Conductor : MonoBehaviour {
         spacebar.GetComponent<Image>().sprite = normalSpace;
     }
     
-    public void ResetSong() {
-        gameStarted = false;
-        gameEnded = false;
-        settingsCanvas.SetActive(false);
-        musicSource.Stop();
-        StopCoroutine("LockSpin");
-        measureTracker.moving = false;
-        lockSpin.rotationSpeed = 0f;
-        responded = false;
-        StartCoroutine("ReturnSnap");
-        beatmapPosition = 0;
-        totalPoints = 0;
-        //foreach (GameObject slot in numberSlots) {
-        //    slot.SetActive(false);
-        //}
-        SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
-    }
+    
     public IEnumerator FirstSnap() {
         clickPlayed = true;
         burst.Play("burst", 0, 0);
