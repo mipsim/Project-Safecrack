@@ -11,6 +11,10 @@ public class MainMenuBehavior : MonoBehaviour
 
     private AudioSource buttonClick;
 
+    private void Awake() {
+        buttonClick = GetComponent<AudioSource>();
+
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -20,7 +24,10 @@ public class MainMenuBehavior : MonoBehaviour
             instance = this;
         }
 
-        buttonClick = GetComponent<AudioSource>();
+
+        if (PlayerPrefs.HasKey("SFXVolume")) {
+            ChangeSFXVolume(PlayerPrefs.GetFloat("SFXVolume"));
+        }
     }
 
     public void GoToGameplay() {
@@ -52,5 +59,9 @@ public class MainMenuBehavior : MonoBehaviour
 
     public void PlayButtonSound() { 
         buttonClick.Play();
+    }
+
+    public void ChangeSFXVolume(float vol) {
+        buttonClick.volume = vol;
     }
 }

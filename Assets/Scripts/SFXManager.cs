@@ -8,12 +8,17 @@ public class SFXManager : MonoBehaviour
     public AudioSource sfxSource;
     public AudioClip click, correct, wrong, button, clear;
 
+    private void Awake() {
+        sfxSource = GetComponent<AudioSource>();
+
+    }
     // Start is called before the first frame update
     void Start()
     {
         instance = this;
-        sfxSource = GetComponent<AudioSource>();
-        ChangeSFXVolume(sfxSource.volume);
+        if (PlayerPrefs.HasKey("SFXVolume")) {
+            ChangeSFXVolume(PlayerPrefs.GetFloat("SFXVolume"));
+        }
     }
 
     // Update is called once per frame
