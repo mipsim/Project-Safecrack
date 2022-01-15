@@ -90,6 +90,7 @@ public class Conductor : MonoBehaviour {
 
     // Lock and measure stuff
     public GameObject locke;
+    public GameObject railOverlay;
     public LockSpinWhee lockSpin;
     public MeasureTracker measureTracker;
 
@@ -134,11 +135,11 @@ public class Conductor : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Input.GetKeyDown(KeyCode.Y)) {
-            PlayerPrefs.SetFloat("Lock Mock", 1);
-            PlayerPrefs.SetFloat("Batter Up", 1);
-            PlayerPrefs.SetFloat("Nuts and Bolts", 1);
-        }
+        //if (Input.GetKeyDown(KeyCode.Y)) {
+        //    PlayerPrefs.SetFloat("Lock Mock", 1);
+        //    PlayerPrefs.SetFloat("Batter Up", 1);
+        //    PlayerPrefs.SetFloat("Nuts and Bolts", 1);
+        //}
 
         // Use ESC to pause/unpause the game
         if (Input.GetKeyDown(KeyCode.Escape)) {
@@ -221,6 +222,7 @@ public class Conductor : MonoBehaviour {
                 StartCoroutine("PressButton");
                 // Start the song with space
                 if (!gameStarted) {
+                    railOverlay.SetActive(true);
                     progressBar.gameObject.SetActive(true);
                     spacetext.text = "SPACE TO CRACK";
                     SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
@@ -332,6 +334,8 @@ public class Conductor : MonoBehaviour {
     }
 
     public void ResetSong() {
+        
+
         gameStarted = false;
         gameEnded = false;
         responded = false;
@@ -352,8 +356,15 @@ public class Conductor : MonoBehaviour {
         settingsCanvas.SetActive(false);
         musicSource.Stop();
         progressBar.gameObject.SetActive(false);
+        railOverlay.SetActive(false);
         StopCoroutine("LockSpin");
         StartCoroutine("ReturnSnap");
+
+        if (musicSource.clip != waitingSong) {
+            musicSource.clip = waitingSong;
+            musicSource.loop = true;
+            musicSource.Play();
+        }
     }
 
     // Chooses random beat to play a click within a time window
@@ -391,8 +402,10 @@ public class Conductor : MonoBehaviour {
 
             //Debug.Log("made it to end of song, got " + totalPoints + " out of " + beatmapPosition+1);
         }
-        StartCoroutine("ClickPlayed");
-        if (beatmapPosition < beatmap.clickMeasureList.Capacity) {
+        
+        else if (beatmapPosition < beatmap.clickMeasureList.Capacity) {
+            StartCoroutine("ClickPlayed");
+
             var beatmapMultiplier = 2f;
             if (currentSong.name == "Nuts and Bolts") {
                 beatmapMultiplier = 1f;
@@ -401,8 +414,8 @@ public class Conductor : MonoBehaviour {
             previousTargetSongPosition = targetSongPosition;
             targetSongPosition = ((beatmap.playerMeasureList[beatmapPosition] - 1) * measureLength + (beatmap.playerBeatList[beatmapPosition] - 1) * msPerBeat / beatmapMultiplier);
             beatmapPosition++;
-        }
 
+        }
         //else {
         //    if (songPosition >= clickBeatPosition) {
         //            clickBeatPosition = (int)(((songPosition % msPerBeat) + measureLength) + (int)Random.Range(0, timeSig) * msPerBeat);
@@ -518,7 +531,7 @@ public class Conductor : MonoBehaviour {
 
     public void CloseScreen() {
         resultText.gameObject.transform.parent.gameObject.SetActive(false);
-        if (PlayerPrefs.GetFloat("Lock Mock") == 1 && PlayerPrefs.GetFloat("Batter Up") == 1 && PlayerPrefs.GetFloat("Nuts and Bolts") == 1 && PlayerPrefs.GetFloat("Credits") != 1) {
+        if (PlayerPrefs.GetFloat("Spynthesizer") == 1 && PlayerPrefs.GetFloat("Lock Mock") == 1 && PlayerPrefs.GetFloat("Batter Up") == 1 && PlayerPrefs.GetFloat("Nuts and Bolts") == 1 && PlayerPrefs.GetFloat("Credits") != 1) {
             PlayerPrefs.SetFloat("Credits", 1);
             StartCoroutine("FadeToCredits");
             

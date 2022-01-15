@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class MainMenuBehavior : MonoBehaviour
 {
@@ -10,6 +11,14 @@ public class MainMenuBehavior : MonoBehaviour
     public GameObject TutorialPage;
 
     private AudioSource buttonClick;
+
+    public GameObject[] tutorialPages;
+    public int pageCount;
+    public GameObject leftArrow;
+    public GameObject rightArrow;
+    public GameObject advanceToGame;
+    public GameObject exitTutorialButton;
+    public bool fromStart;
 
     private void Awake() {
         buttonClick = GetComponent<AudioSource>();
@@ -31,7 +40,13 @@ public class MainMenuBehavior : MonoBehaviour
     }
 
     public void GoToGameplay() {
-        SceneManager.LoadScene(1);
+        if (PlayerPrefs.GetFloat("Tutorial") == 1) {
+            SceneManager.LoadScene(1);
+        }
+        else {
+            fromStart = true;
+            OpenTutorial();
+        }
     }
 
     public void GoToCredits()
@@ -42,6 +57,18 @@ public class MainMenuBehavior : MonoBehaviour
     public void OpenTutorial()
     {
         TutorialPage.SetActive(true);
+        tutorialPages[pageCount].SetActive(false);
+        pageCount = 0;
+        tutorialPages[pageCount].SetActive(true);
+        leftArrow.SetActive(false);
+        rightArrow.SetActive(true);
+
+        if (fromStart) {
+            exitTutorialButton.SetActive(false);
+        }
+        else {
+            exitTutorialButton.SetActive(true);
+        }
     }
 
     public void CloseTutorial()
@@ -63,5 +90,40 @@ public class MainMenuBehavior : MonoBehaviour
 
     public void ChangeSFXVolume(float vol) {
         buttonClick.volume = vol;
+    }
+
+    public void DecreasePage() {
+        tutorialPages[pageCount].SetActive(false);
+        if (pageCount == 1) {
+            leftArrow.SetActive(false);
+        }
+        else if (pageCount == tutorialPages.Length-1) {
+            rightArrow.SetActive(true);
+            advanceToGame.SetActive(false);
+        }
+        pageCount--;
+        tutorialPages[pageCount].SetActive(true);
+    }
+
+    public void IncreasePage() {
+        tutorialPages[pageCount].SetActive(false);
+
+        if (pageCount == 0) {
+            leftArrow.SetActive(true);
+        }
+        else if (pageCount == tutorialPages.Length-2) {
+            rightArrow.SetActive(false);
+            if (fromStart) {
+                advanceToGame.SetActive(true);
+
+            }
+        }
+        pageCount++;
+        tutorialPages[pageCount].SetActive(true);
+
+    }
+
+    public void TutorialSeen() {
+        PlayerPrefs.SetFloat("Tutorial", 1);
     }
 }
