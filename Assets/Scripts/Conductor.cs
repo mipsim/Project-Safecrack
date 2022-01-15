@@ -72,6 +72,7 @@ public class Conductor : MonoBehaviour {
     // VFX
     public Animator burst;
     public Animator sweep;
+    public Animator sweep2;
     public Animator stageclear;
 
     public GameObject leftbar, lefttri, rightbar, righttri;
@@ -91,6 +92,8 @@ public class Conductor : MonoBehaviour {
     // Lock and measure stuff
     public GameObject locke;
     public GameObject railOverlay;
+    public GameObject railTwo;
+    public GameObject railThree;
     public LockSpinWhee lockSpin;
     public MeasureTracker measureTracker;
 
@@ -179,15 +182,16 @@ public class Conductor : MonoBehaviour {
 
                 progressBar.value = songPosition / (loadedClip.length * 1000f);
 
-                if (lockSpin.rotationSpeed < 1500f && lockSpin.rotationSpeed > -1500f) {
-                    if (lockSpin.rotationSpeed > 0) {
-                        lockSpin.rotationSpeed += Time.deltaTime * lockMultiplier;
-                    }
-                    else {
-                        lockSpin.rotationSpeed -= Time.deltaTime * lockMultiplier;
-                    }
+                lockSpin.rotationSpeed = progressBar.value * 1269 * (songBpm/100);
+                //if (lockSpin.rotationSpeed < 1500f && lockSpin.rotationSpeed > -1500f) {
+                //    if (lockSpin.rotationSpeed > 0) {
+                //        lockSpin.rotationSpeed += Time.deltaTime * lockMultiplier;
+                //    }
+                //    else {
+                //        lockSpin.rotationSpeed -= Time.deltaTime * lockMultiplier;
+                //    }
 
-                }
+                //}
 
                 // when we get to the beatmap click position, play the click sound and snap
                 if (songPosition > beatmapClickPosition && !clickPlayed) {
@@ -200,6 +204,7 @@ public class Conductor : MonoBehaviour {
                     SFXManager.instance.PlaySound("wrong");
                     if (autoFailToggle) {
                         ResetSong();
+                        sweep2.Play("sweep", 0, 0);
                     }
                     else {
                         DetermineClick();
@@ -211,6 +216,8 @@ public class Conductor : MonoBehaviour {
                     resetHoldTimer += Time.deltaTime;
                     if (resetHoldTimer >= 1f) {
                         ResetSong();
+                        sweep2.Play("sweep", 0, 0);
+
                     }
                 }
                 else {
@@ -223,6 +230,7 @@ public class Conductor : MonoBehaviour {
                 // Start the song with space
                 if (!gameStarted) {
                     railOverlay.SetActive(true);
+                    StartCoroutine(SpawnRails());
                     progressBar.gameObject.SetActive(true);
                     spacetext.text = "SPACE TO CRACK";
                     SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
@@ -252,7 +260,8 @@ public class Conductor : MonoBehaviour {
                         Mathf.Abs(previousTargetSongPosition - songPosition) < msPerBeat / 2) {
 
                         // spin other direction
-                        StartCoroutine("LockSpin");
+                        //StartCoroutine("LockSpin");
+                        lockSpin.rotationSpeed = -lockSpin.rotationSpeed;
 
                         SFXManager.instance.PlaySound("correct");
                         hitNotePosition = (int)(songPosition);
@@ -354,9 +363,10 @@ public class Conductor : MonoBehaviour {
         scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
         spacetext.text = "SPACE TO START";
         settingsCanvas.SetActive(false);
-        musicSource.Stop();
         progressBar.gameObject.SetActive(false);
         railOverlay.SetActive(false);
+        railTwo.SetActive(false);
+        railThree.SetActive(false);
         StopCoroutine("LockSpin");
         StartCoroutine("ReturnSnap");
 
@@ -378,7 +388,8 @@ public class Conductor : MonoBehaviour {
                 SFXManager.instance.PlaySound("clear");
                 stageclear.Play("stage clear", 0, 0);
                 resultText.text = "You cracked the lock!";
-                endScoreText.text = "" + (float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100 + "%";
+                int finalScore = (int)System.Math.Truncate((double)((float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100));
+                endScoreText.text = "" + finalScore + "%";
                 hitsText.text = "" + totalPoints;
                 missesText.text = "" + (beatmap.clickMeasureList.Capacity - totalPoints);
                 StartCoroutine(OpenScreen(2));
@@ -391,7 +402,8 @@ public class Conductor : MonoBehaviour {
             }
             else {
                 resultText.text = "The lock still stands!";
-                endScoreText.text = "" + (float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100 + "%";
+                int finalScore = (int)System.Math.Truncate((double)((float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100));
+                endScoreText.text = "" + finalScore + "%";
                 hitsText.text = "" + totalPoints;
                 missesText.text = "" + (beatmap.clickMeasureList.Capacity - totalPoints);
                 resultText.gameObject.transform.parent.gameObject.SetActive(true);
@@ -518,6 +530,14 @@ public class Conductor : MonoBehaviour {
             lefttri.GetComponent<SpriteRenderer>().sprite = redtri;
             righttri.GetComponent<SpriteRenderer>().sprite = redtri;
         }
+    }
+
+    public IEnumerator SpawnRails() {
+        yield return new WaitForSeconds(1f);
+        railTwo.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        railThree.SetActive(true);
+
     }
 
     public IEnumerator OpenScreen(float delay) {

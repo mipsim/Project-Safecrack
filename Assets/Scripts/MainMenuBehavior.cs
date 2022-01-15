@@ -39,6 +39,19 @@ public class MainMenuBehavior : MonoBehaviour
         }
     }
 
+    public void Update() {
+        if (TutorialPage.activeSelf) {
+            if (Input.GetKeyDown(KeyCode.Q) && leftArrow.activeSelf) {
+                DecreasePage();
+                PlayButtonSound();
+            }
+            else if (Input.GetKeyDown(KeyCode.E) && rightArrow.activeSelf) {
+                IncreasePage();
+                PlayButtonSound();
+            }
+        }
+    }
+
     public void GoToGameplay() {
         if (PlayerPrefs.GetFloat("Tutorial") == 1) {
             SceneManager.LoadScene(1);
