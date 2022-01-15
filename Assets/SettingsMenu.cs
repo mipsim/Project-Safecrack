@@ -39,6 +39,9 @@ public class SettingsMenu : MonoBehaviour
     }
 
     public void ToggleSettings() {
+        if (Conductor.instance != null) {
+            Conductor.instance.PauseGame();
+        }
         settingsMenu.SetActive(!settingsMenu.activeSelf);
     }
 

@@ -61,6 +61,7 @@ public class Conductor : MonoBehaviour {
     public GameObject scoreText;
     public TextMeshPro currentlyPlaying;
     public TextMeshPro currentBPM;
+    public Slider progressBar;
 
     // VFX
     public Animator burst;
@@ -95,10 +96,10 @@ public class Conductor : MonoBehaviour {
     // Start is called before the first frame update
     private void Awake() {
         musicSource = GetComponent<AudioSource>();
+        instance = this;
 
     }
     void Start() {
-        instance = this;
         //Load the AudioSource attached to the Conductor GameObject
         lockSpin = locke.GetComponent<LockSpinWhee>();
 
@@ -122,13 +123,13 @@ public class Conductor : MonoBehaviour {
         if (PlayerPrefs.HasKey("BGMVolume")) {
             ChangeMusicVolume(PlayerPrefs.GetFloat("BGMVolume"));
         }
+        
     }
 
     // Update is called once per frame
     void Update() {
         // Use ESC to pause/unpause the game
         if (Input.GetKeyDown(KeyCode.Escape)) {
-            PauseGame();
             settingsCanvas.transform.parent.GetComponent<SettingsMenu>().ToggleSettings();
         }
 
@@ -162,6 +163,8 @@ public class Conductor : MonoBehaviour {
                 
                 // determine how many seconds since the song started
                 songPosition = (float)(AudioSettings.dspTime - dspSongTime) * 1000f;
+
+                progressBar.value = songPosition / (loadedClip.length * 1000f);
 
                 if (lockSpin.rotationSpeed < 1500f && lockSpin.rotationSpeed > -1500f) {
                     if (lockSpin.rotationSpeed > 0) {
@@ -203,11 +206,11 @@ public class Conductor : MonoBehaviour {
             }
 
             if (Input.GetKeyDown(KeyCode.Space)) {
-                //Debug.Log("Target: " + targetSongPosition + " Clicked at: " + songPosition);
                 StartCoroutine("PressButton");
                 // Start the song with space
                 if (!gameStarted) {
-                    spacetext.text = "SPACE";
+                    progressBar.gameObject.SetActive(true);
+                    spacetext.text = "SPACE TO CRACK";
                     SwitchSongs(currentSong.clip, currentSong.songName, currentSong.bpm, currentSong.sig);
                     musicSource.clip = loadedClip;
                     musicSource.loop = false;
@@ -252,7 +255,7 @@ public class Conductor : MonoBehaviour {
                     else {
                         SFXManager.instance.PlaySound("wrong");
                         if (autoFailToggle) {
-
+                            ResetSong();
                         }
                     }
                     // determine new click time and snap to middle then back
@@ -324,6 +327,7 @@ public class Conductor : MonoBehaviour {
         lockSpin.rotationSpeed = 0f;
         resetHoldTimer = 0;
 
+        spacetext.text = "SPACE TO START";
         settingsCanvas.SetActive(false);
         musicSource.Stop();
         StopCoroutine("LockSpin");
