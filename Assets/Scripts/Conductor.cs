@@ -62,6 +62,10 @@ public class Conductor : MonoBehaviour {
     public TextMeshPro currentlyPlaying;
     public TextMeshPro currentBPM;
     public Slider progressBar;
+    public TextMeshProUGUI resultText;
+    public TextMeshProUGUI endScoreText;
+    public TextMeshProUGUI hitsText;
+    public TextMeshProUGUI missesText;
 
     // VFX
     public Animator burst;
@@ -328,6 +332,7 @@ public class Conductor : MonoBehaviour {
         resetHoldTimer = 0;
         progressBar.value = 0;
 
+        scoreText.GetComponent<TextMeshPro>().text = totalPoints + "/" + beatmap.clickMeasureList.Capacity;
         spacetext.text = "SPACE TO START";
         settingsCanvas.SetActive(false);
         musicSource.Stop();
@@ -345,6 +350,20 @@ public class Conductor : MonoBehaviour {
                 StartCoroutine("ShowEnding");
                 SFXManager.instance.PlaySound("clear");
                 stageclear.Play("stage clear", 0, 0);
+                resultText.text = "You cracked the lock!";
+                endScoreText.text = "" + (float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100 + "%";
+                hitsText.text = "" + totalPoints;
+                missesText.text = "" + (beatmap.clickMeasureList.Capacity - totalPoints);
+                StartCoroutine(OpenScreen(2));
+            }
+            else {
+                resultText.text = "The lock still stands!";
+                endScoreText.text = "" + (float)totalPoints / (float)beatmap.clickMeasureList.Capacity * 100 + "%";
+                hitsText.text = "" + totalPoints;
+                missesText.text = "" + (beatmap.clickMeasureList.Capacity - totalPoints);
+                resultText.gameObject.transform.parent.gameObject.SetActive(true);
+                StartCoroutine(OpenScreen(0.25f));
+
             }
             ResetSong();
 
@@ -466,7 +485,16 @@ public class Conductor : MonoBehaviour {
         }
     }
 
+    public IEnumerator OpenScreen(float delay) {
+        yield return new WaitForSeconds(delay);
+        resultText.gameObject.transform.parent.gameObject.SetActive(true);
+    }
+
     public void ChangeMusicVolume(float vol) {
         musicSource.volume = vol;
+    }
+
+    public void CloseScreen() {
+        resultText.gameObject.transform.parent.gameObject.SetActive(false);
     }
 }
