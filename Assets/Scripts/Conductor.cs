@@ -66,6 +66,7 @@ public class Conductor : MonoBehaviour {
     public TextMeshProUGUI endScoreText;
     public TextMeshProUGUI hitsText;
     public TextMeshProUGUI missesText;
+    private Color goldColor = new Color(1, 0.7401557f, 0);
 
     // VFX
     public Animator burst;
@@ -313,6 +314,13 @@ public class Conductor : MonoBehaviour {
         currentlyPlaying.text = songName;
         currentBPM.text = "" + songBpm;
 
+        if (PlayerPrefs.GetFloat(currentlyPlaying.text) == 1) {
+            currentlyPlaying.color = goldColor;
+        }
+        else {
+            currentlyPlaying.color = Color.white;
+        }
+
         CalculateSongInfo();
     }
 
@@ -355,6 +363,12 @@ public class Conductor : MonoBehaviour {
                 hitsText.text = "" + totalPoints;
                 missesText.text = "" + (beatmap.clickMeasureList.Capacity - totalPoints);
                 StartCoroutine(OpenScreen(2));
+                if (currentlyPlaying.color != goldColor) {
+                    if (!PlayerPrefs.HasKey(currentlyPlaying.text)) {
+                        PlayerPrefs.SetFloat(currentlyPlaying.text, 1);
+                    }
+                    currentlyPlaying.color = goldColor;
+                }
             }
             else {
                 resultText.text = "The lock still stands!";
