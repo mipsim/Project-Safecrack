@@ -326,6 +326,7 @@ public class Conductor : MonoBehaviour {
         targetSongPosition = 0;
         lockSpin.rotationSpeed = 0f;
         resetHoldTimer = 0;
+        progressBar.value = 0;
 
         spacetext.text = "SPACE TO START";
         settingsCanvas.SetActive(false);
