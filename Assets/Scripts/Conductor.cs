@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Conductor : MonoBehaviour {
     [Header("Song Information")]
@@ -133,13 +134,19 @@ public class Conductor : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        if (Input.GetKeyDown(KeyCode.Y)) {
+            PlayerPrefs.SetFloat("Lock Mock", 1);
+            PlayerPrefs.SetFloat("Batter Up", 1);
+            PlayerPrefs.SetFloat("Nuts and Bolts", 1);
+        }
+
         // Use ESC to pause/unpause the game
         if (Input.GetKeyDown(KeyCode.Escape)) {
             settingsCanvas.transform.parent.GetComponent<SettingsMenu>().ToggleSettings();
         }
 
         // Inputs only allowed while settings menu not open
-        if (!settingsCanvas.activeSelf) {
+        if (!settingsCanvas.activeSelf && !resultText.transform.parent.gameObject.activeSelf) {
             // Use Q/E to swap between songs
             if (!gameStarted) {
                 if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.E)) {
@@ -344,6 +351,7 @@ public class Conductor : MonoBehaviour {
         spacetext.text = "SPACE TO START";
         settingsCanvas.SetActive(false);
         musicSource.Stop();
+        progressBar.gameObject.SetActive(false);
         StopCoroutine("LockSpin");
         StartCoroutine("ReturnSnap");
     }
@@ -510,5 +518,25 @@ public class Conductor : MonoBehaviour {
 
     public void CloseScreen() {
         resultText.gameObject.transform.parent.gameObject.SetActive(false);
+        if (PlayerPrefs.GetFloat("Lock Mock") == 1 && PlayerPrefs.GetFloat("Batter Up") == 1 && PlayerPrefs.GetFloat("Nuts and Bolts") == 1 && PlayerPrefs.GetFloat("Credits") != 1) {
+            PlayerPrefs.SetFloat("Credits", 1);
+            StartCoroutine("FadeToCredits");
+            
+        }
+    }
+
+    public IEnumerator FadeToCredits() {
+        fade.SetActive(true);
+        var fadeScreen = fade.GetComponent<SpriteRenderer>();
+        fadeScreen.color = new Color(0, 0, 0, 0);
+        float fadeAlpha;
+        while (fadeScreen.color.a < 1) {
+            fadeAlpha = fadeScreen.color.a + (0.5f * Time.deltaTime);
+            fadeScreen.color = new Color(0, 0, 0, fadeAlpha);
+            yield return null;
+        }
+        //victory screen here
+        SceneManager.LoadScene(2);
+        yield return new WaitForEndOfFrame();
     }
 }
