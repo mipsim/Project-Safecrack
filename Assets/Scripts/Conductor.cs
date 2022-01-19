@@ -551,7 +551,7 @@ public class Conductor : MonoBehaviour {
 
     public void CloseScreen() {
         resultText.gameObject.transform.parent.gameObject.SetActive(false);
-        if (PlayerPrefs.GetFloat("Spynthesizer") == 1 && PlayerPrefs.GetFloat("Lock Mock") == 1 && PlayerPrefs.GetFloat("Batter Up") == 1 && PlayerPrefs.GetFloat("Nuts and Bolts") == 1 && PlayerPrefs.GetFloat("Credits") != 1) {
+        if (PlayerPrefs.GetFloat("Spynthesizer") == 1 && PlayerPrefs.GetFloat("Lock Mock") == 1 && PlayerPrefs.GetFloat("Batter Up") == 1 && PlayerPrefs.GetFloat("Nuts and Bolts") == 1 && PlayerPrefs.GetFloat("All We Have") == 1 && PlayerPrefs.GetFloat("Credits") != 1) {
             PlayerPrefs.SetFloat("Credits", 1);
             StartCoroutine("FadeToCredits");
             
